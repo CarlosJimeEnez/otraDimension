@@ -57,7 +57,7 @@ export class MapHomeComponent implements OnInit, AfterViewInit {
     this.map.on('zoomend', () => {
       const zoom = this.map!.getZoom();
       console.log(zoom);
-      const escala = 0.0001 * Math.pow(20 - zoom, 2);
+      const escala = this.calcularZoom(zoom);
       const center = [19.047494523789826, -98.18321684482034];
       const der = [center[0] + escala, center[1] - escala];
       const izd = [center[0] - escala, center[1] + escala];
@@ -73,5 +73,10 @@ export class MapHomeComponent implements OnInit, AfterViewInit {
 
     L.svgOverlay(svgUrl, this.bounds!).addTo(this.map);
     this.map.fitBounds(this.bounds!);
+  }
+
+  calcularZoom(zoom: number): number {
+    const zoomCalaculado = 0.0001 * Math.pow(20 - zoom, 2);
+    return zoomCalaculado;
   }
 }
