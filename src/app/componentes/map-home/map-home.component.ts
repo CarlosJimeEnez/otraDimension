@@ -3,6 +3,7 @@ import {
   OnInit,
   AfterViewInit,
   ViewChild,
+  Renderer2,
   ElementRef,
 } from '@angular/core';
 import * as mapboxgl from 'mapbox-gl';
@@ -30,8 +31,11 @@ export class MapHomeComponent implements OnInit, AfterViewInit {
   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef;
   map: mapboxgl.Map | undefined;
   center: [number, number] = [-98.18318658713179, 19.047718948679815];
-  ngOnInit() {}
+  popup: mapboxgl.Popup | undefined;
 
+  constructor(private renderer: Renderer2) {}
+
+  ngOnInit() {}
   ngAfterViewInit(): void {
     this.map = new mapboxgl.Map({
       accessToken:
@@ -64,17 +68,42 @@ export class MapHomeComponent implements OnInit, AfterViewInit {
       .setLngLat(this.center)
       .addTo(this.map);
 
-    // Create a popup, but don't add it to the map yet.
     const popup = new mapboxgl.Popup({
       closeButton: false,
       closeOnClick: false,
     }).setHTML(
       '<div class="flex items-center justify-center">' +
-        '<p class="font-extrabold p-3">La fuente de los Muñecos</p>' +
-        '<button type="button" class="mt-1 text-text bg-gradient-to-br from-primaryv3 to-accentv2 hover:bg-gradient-to-bl focus:outline-none font-semibold rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Visitar... </button>' +
+        '<p class="font-extrabold  p-3">La fuente de los Muñecos</p>' +
+        '<button id="visitButton" (click)="this.mostarEvento()" type="button" class="mt-1 text-text bg-gradient-to-br from-primaryv3 to-accentv2 hover:bg-gradient-to-bl focus:outline-none font-semibold rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Visitar... </button>' +
         '</div>'
     );
 
+    // Agregar el event listener al botón después de que el popup se haya añadido al DOM
+    popup.on('open', () => {
+      const visitButton = document.getElementById('visitButton');
+      if (visitButton) {
+        visitButton.addEventListener('click', () => this.mostrarEvento());
+      }
+    });
     marker1.setPopup(popup).togglePopup();
+
+    // this.clickListener = this.renderer.listen(
+    //   'document',
+    //   'click',
+    //   this.closePopupOnClickOutside.bind(this)
+    // );
+  }
+
+  mostrarEvento(): any {
+    console.log('Evento click');
+  }
+
+  closePopupOnClickOutside(event: MouseEvent): void {
+    if (this.popup && this.popup.isOpen()) {
+      const mapElement = this.mapContainer.nativeElement;
+      if (!mapElement.contains(event.target as Node)) {
+        this.popup.remove();
+      }
+    }
   }
 }
