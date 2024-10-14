@@ -5,78 +5,76 @@ import {
   ViewChild,
   ElementRef,
 } from '@angular/core';
-import * as L from 'leaflet';
+import * as mapboxgl from 'mapbox-gl';
 
 @Component({
   selector: 'app-map-home',
   standalone: true,
   imports: [],
   templateUrl: './map-home.component.html',
+  styles: [
+    `
+      ::ng-deep .mapboxgl-popup-content {
+        background-color: var(--background);
+        color: var(--text);
+        border-radius: 10px;
+        padding: 15px;
+      }
+      ::ng-deep .mapboxgl-popup-tip {
+        border-top-color: #3498db;
+      }
+    `,
+  ],
 })
 export class MapHomeComponent implements OnInit, AfterViewInit {
-  private map: L.Map | undefined;
-  private bounds: L.LatLngBounds | undefined;
-
-  @ViewChild('fountainSvg', { static: true })
-  fountainSvg!: ElementRef<SVGElement>;
-
-  constructor() {}
-
+  @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef;
+  map: mapboxgl.Map | undefined;
+  center: [number, number] = [-98.18318658713179, 19.047718948679815];
   ngOnInit() {}
 
-  ngAfterViewInit() {
-    //TODO Vista inicial del mapa:
-    const svgUrl = this.fountainSvg.nativeElement;
-    console.log(svgUrl);
-
-    this.map = L.map('map').setView(
-      [19.047494523789826, -98.18321684482034],
-      13
-    );
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors',
-    }).addTo(this.map);
-
-    const escala = 0.1;
-    const center = [19.047494523789826, -98.18321684482034];
-    const der = [center[0] + escala, center[1] - escala];
-    const izd = [center[0] - escala, center[1] + escala];
-
-    this.bounds = L.latLngBounds([
-      [der[0], der[1]],
-      [izd[0], izd[1]],
-    ]);
-    this.map.fitBounds(this.bounds);
-
-    L.marker([19.047494523789826, -98.18321684482034])
-      .addTo(this.map)
-      .bindPopup('La fuente de los Muñecos ')
-      .openPopup();
-
-    this.map.on('zoomend', () => {
-      const zoom = this.map!.getZoom();
-      console.log(zoom);
-      const escala = this.calcularZoom(zoom);
-      const center = [19.047494523789826, -98.18321684482034];
-      const der = [center[0] + escala, center[1] - escala];
-      const izd = [center[0] - escala, center[1] + escala];
-
-      this.bounds = L.latLngBounds([
-        [der[0], der[1]],
-        [izd[0], izd[1]],
-      ]);
-      console.log(this.bounds);
-
-      L.svgOverlay(svgUrl, this.bounds!).addTo(this.map!);
+  ngAfterViewInit(): void {
+    this.map = new mapboxgl.Map({
+      accessToken:
+        'pk.eyJ1IjoiY2FlbG9zZGV2IiwiYSI6ImNtMjVxZzJjbTB1aXMybG9pN2gzZTU2ZHEifQ.iEZQ-BTw9GLmRXyQB8L3mA',
+      container: 'map',
+      style: 'mapbox://styles/mapbox/dark-v11',
+      center: this.center,
+      zoom: 11,
+      pitch: 25, // Inclinación para efecto 3D
+      bearing: -60, // Rotación del mapa
+      antialias: true, // Suaviza los bordes de las geometrías
     });
 
-    L.svgOverlay(svgUrl, this.bounds!).addTo(this.map);
-    this.map.fitBounds(this.bounds!);
-  }
+    // Crea un elemento img para el SVG
+    const el = document.createElement('img');
+    // Establece la ruta al archivo SVG en la carpeta assets
+    el.src = 'animaciones/inimaFrame1.png';
+    // Establece el tamaño de la imagen (ajusta según sea necesario)
+    el.style.width = '50px';
+    el.style.height = '50px';
 
-  calcularZoom(zoom: number): number {
-    const zoomCalaculado = 0.0001 * Math.pow(20 - zoom, 2);
-    return zoomCalaculado;
+    // Crea un marcador con el elemento SVG personalizado
+    new mapboxgl.Marker(el).setLngLat(this.center).addTo(this.map);
+
+    // Añadir controles de navegación
+    this.map.addControl(new mapboxgl.NavigationControl());
+
+    //Commented out the creation of a default Marker to avoid redeclaration error.
+    const marker1 = new mapboxgl.Marker({ color: 'var(--primary)' })
+      .setLngLat(this.center)
+      .addTo(this.map);
+
+    // Create a popup, but don't add it to the map yet.
+    const popup = new mapboxgl.Popup({
+      closeButton: false,
+      closeOnClick: false,
+    }).setHTML(
+      '<div class="flex items-center justify-center">' +
+        '<p class="font-extrabold p-3">La fuente de los Muñecos</p>' +
+        '<button type="button" class="mt-1 text-text bg-gradient-to-br from-primaryv3 to-accentv2 hover:bg-gradient-to-bl focus:outline-none font-semibold rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Visitar... </button>' +
+        '</div>'
+    );
+
+    marker1.setPopup(popup).togglePopup();
   }
 }
