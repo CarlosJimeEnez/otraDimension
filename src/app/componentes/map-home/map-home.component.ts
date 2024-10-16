@@ -3,15 +3,18 @@ import {
   OnInit,
   AfterViewInit,
   ViewChild,
-  Renderer2,
   ElementRef,
 } from '@angular/core';
 import * as mapboxgl from 'mapbox-gl';
+import { Eventos } from '../../interfaces/Eventos';
+import { EventosDetallesComponent } from '../eventos-detalles/eventos-detalles.component';
+import { FooterComponent } from '../footer/footer.component';
+import { NuevoEventoComponent } from '../nuevo-evento/nuevo-evento.component';
 
 @Component({
   selector: 'app-map-home',
   standalone: true,
-  imports: [],
+  imports: [EventosDetallesComponent, FooterComponent, NuevoEventoComponent],
   templateUrl: './map-home.component.html',
   styles: [
     `
@@ -22,7 +25,20 @@ import * as mapboxgl from 'mapbox-gl';
         padding: 15px;
       }
       ::ng-deep .mapboxgl-popup-tip {
-        border-top-color: #3498db;
+        // border-top-color: #3498db;
+      }
+
+      ::ng-deep .mapboxgl-popup-close-button {
+        background-color: red;
+        border-color: var(--text);
+        color: var(--text);
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
       }
     `,
   ],
@@ -32,11 +48,34 @@ export class MapHomeComponent implements OnInit, AfterViewInit {
   map: mapboxgl.Map | undefined;
   center: [number, number] = [-98.18318658713179, 19.047718948679815];
   popup: mapboxgl.Popup | undefined;
+  eventoSeleccionado: Eventos | undefined;
+  mostrarDashboard: boolean = false;
+  activePopup: mapboxgl.Popup | null = null;
 
-  constructor(private renderer: Renderer2) {}
+  eventos: Eventos[] = [
+    {
+      id: 1,
+      nombre: 'Evento 1',
+      coordenadas: [-98.1831865, 19.04771894],
+      descripcion: 'Descripcion 1',
+    },
+    {
+      id: 2,
+      nombre: 'Evento 2',
+      coordenadas: [-98.183, 19.04],
+      descripcion: 'Descripcion 2',
+    },
+  ];
+
+  constructor() {}
 
   ngOnInit() {}
   ngAfterViewInit(): void {
+    this.cargarMapa();
+    this.cargarEventos();
+  }
+
+  cargarMapa(): void {
     this.map = new mapboxgl.Map({
       accessToken:
         'pk.eyJ1IjoiY2FlbG9zZGV2IiwiYSI6ImNtMjVxZzJjbTB1aXMybG9pN2gzZTU2ZHEifQ.iEZQ-BTw9GLmRXyQB8L3mA',
@@ -48,62 +87,84 @@ export class MapHomeComponent implements OnInit, AfterViewInit {
       bearing: -60, // Rotación del mapa
       antialias: true, // Suaviza los bordes de las geometrías
     });
-
-    // Crea un elemento img para el SVG
-    const el = document.createElement('img');
-    // Establece la ruta al archivo SVG en la carpeta assets
-    el.src = 'animaciones/inimaFrame1.png';
-    // Establece el tamaño de la imagen (ajusta según sea necesario)
-    el.style.width = '50px';
-    el.style.height = '50px';
-
-    // Crea un marcador con el elemento SVG personalizado
-    new mapboxgl.Marker(el).setLngLat(this.center).addTo(this.map);
-
     // Añadir controles de navegación
-    this.map.addControl(new mapboxgl.NavigationControl());
+    this.map!.addControl(new mapboxgl.NavigationControl());
+  }
 
-    //Commented out the creation of a default Marker to avoid redeclaration error.
-    const marker1 = new mapboxgl.Marker({ color: 'var(--primary)' })
-      .setLngLat(this.center)
-      .addTo(this.map);
+  cargarEventos(): void {
+    this.eventos.forEach((evento) => {
+      const el = document.createElement('div');
+      el.className = 'marker';
+      el.style.backgroundImage = 'url(animaciones/inimaFrame1.png)';
+      el.style.width = '50px';
+      el.style.height = '50px';
+      el.style.backgroundSize = '100%';
 
-    const popup = new mapboxgl.Popup({
-      closeButton: false,
-      closeOnClick: false,
-    }).setHTML(
-      '<div class="flex items-center justify-center">' +
-        '<p class="font-extrabold  p-3">La fuente de los Muñecos</p>' +
-        '<button id="visitButton" (click)="this.mostarEvento()" type="button" class="mt-1 text-text bg-gradient-to-br from-primaryv3 to-accentv2 hover:bg-gradient-to-bl focus:outline-none font-semibold rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Visitar... </button>' +
-        '</div>'
-    );
+      const marker = new mapboxgl.Marker(el)
+        .setLngLat(evento.coordenadas)
+        .addTo(this.map!);
 
-    // Agregar el event listener al botón después de que el popup se haya añadido al DOM
-    popup.on('open', () => {
-      const visitButton = document.getElementById('visitButton');
-      if (visitButton) {
-        visitButton.addEventListener('click', () => this.mostrarEvento());
-      }
+      const marker1 = new mapboxgl.Marker({ color: 'var(--primary)' })
+        .setLngLat(evento.coordenadas)
+        .addTo(this.map!);
+
+      const popup = new mapboxgl.Popup({
+        closeButton: true,
+        closeOnClick: false,
+      }).setHTML(
+        `<div class="flex items-center justify-center">
+          <p class="font-extrabold select-none  p-3">${evento.nombre}</p>
+          <button id="visitButton-${evento.id}" type="button" class="mt-1 text-text bg-gradient-to-br from-primaryv3 to-accentv2 hover:bg-gradient-to-bl focus:outline-none font-semibold rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Visitar... </button>
+          </div>`
+      );
+
+      marker1.setPopup(popup);
+
+      marker.getElement().addEventListener('click', () => {
+        this.map!.flyTo({
+          center: evento.coordenadas,
+          zoom: 14,
+          speed: 0.5,
+        });
+      });
+
+      popup.on('open', () => {
+        const visitButton = document.getElementById(`visitButton-${evento.id}`);
+        if (visitButton) {
+          visitButton.addEventListener('click', () =>
+            this.mostrarEvento(evento)
+          );
+        }
+      });
+
+      // Función para manejar el zoom
+      const handleMarkerClick = () => {
+        if (this.activePopup) {
+          this.activePopup.remove();
+        }
+
+        this.map!.flyTo({
+          center: evento.coordenadas, // Coordenadas iniciales
+          zoom: 15,
+          speed: 0.5,
+        });
+
+        this.activePopup = popup;
+      };
+
+      marker1.getElement().addEventListener('click', handleMarkerClick);
     });
-    marker1.setPopup(popup).togglePopup();
-
-    // this.clickListener = this.renderer.listen(
-    //   'document',
-    //   'click',
-    //   this.closePopupOnClickOutside.bind(this)
-    // );
   }
 
-  mostrarEvento(): any {
-    console.log('Evento click');
+  mostrarEvento(evento: Eventos): any {
+    this.eventoSeleccionado = evento;
   }
 
-  closePopupOnClickOutside(event: MouseEvent): void {
-    if (this.popup && this.popup.isOpen()) {
-      const mapElement = this.mapContainer.nativeElement;
-      if (!mapElement.contains(event.target as Node)) {
-        this.popup.remove();
-      }
-    }
+  cerrarEvento(): any {
+    this.eventoSeleccionado = undefined;
+  }
+
+  mostrarCreateDashboard(): void {
+    this.mostrarDashboard = true;
   }
 }
