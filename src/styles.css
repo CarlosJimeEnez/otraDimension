@@ -12,6 +12,7 @@
     --secondary: #c70549;
     --accent: #c20fa4;
   }
+
   .dark {
     --text: #d7eafc;
     --background: #010b12;
@@ -46,29 +47,81 @@
 
   html {
     font-size: 100%;
-  } /* 16px */
+  }
+
+  /* 16px */
 
   h1 {
-    font-size: 4.21rem; /* 67.36px */
+    font-size: 4.21rem;
+    /* 67.36px */
   }
 
   h2 {
-    font-size: 3.158rem; /* 50.56px */
+    font-size: 3.158rem;
+    /* 50.56px */
   }
 
   h3 {
-    font-size: 2.369rem; /* 37.92px */
+    font-size: 2.369rem;
+    /* 37.92px */
   }
 
   h4 {
-    font-size: 1.777rem; /* 28.48px */
+    font-size: 1.777rem;
+    /* 28.48px */
   }
 
   h5 {
-    font-size: 1.333rem; /* 21.28px */
+    font-size: 1.333rem;
+    /* 21.28px */
   }
 
   small {
-    font-size: 0.75rem; /* 12px */
+    font-size: 0.75rem;
+    /* 12px */
+  }
+
+  .custom-scrollbar {
+    padding-right: 16px;
+    /* Añade espacio a la derecha para la barra de desplazamiento */
+    box-sizing: content-box;
+    /* Asegura que el padding no afecte al tamaño del contenedor */
+  }
+
+  /* Estilos personalizados para la barra de desplazamiento */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 12px;
+    margin: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: var(--primary-v4);
+    margin: 4px;
+    border-radius: 5vh;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--primary-v3);
+    border-radius: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-v1);
+  }
+
+  .typing-text {
+    position: relative;
+    font-family: 'Courier', monospace;
+  }
+  
+  #typed-text::after {
+    content: '|'; /* This creates the typing cursor */
+    animation: blink 1s infinite;
+  }
+  
+  @keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0; }
+    100% { opacity: 1; }
   }
 }
