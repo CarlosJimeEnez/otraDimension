@@ -119,13 +119,37 @@ export class MapHomeComponent implements OnInit, AfterViewInit {
       );
 
       marker1.setPopup(popup);
-
-      marker.getElement().addEventListener('click', () => {
+      marker1.getElement().addEventListener('click', () => {
         this.map!.flyTo({
           center: evento.coordenadas,
           zoom: 14,
           speed: 0.5,
         });
+        
+        // Togglear el popup
+        if (popup.isOpen()) {
+          popup.remove();
+        } else {
+          popup.addTo(this.map!);
+        }
+        
+        this.activePopup = popup;
+      });
+
+      marker1.getElement().addEventListener('mouseenter', () => {
+        if (this.activePopup && this.activePopup !== popup) {
+          this.activePopup.remove();
+        }
+        if (!popup.isOpen()) {
+          popup.addTo(this.map!);
+        }
+        this.activePopup = popup;
+      });
+
+      marker1.getElement().addEventListener('mouseleave', () => {
+        if (this.activePopup === popup && !popup.isOpen()) {
+          popup.remove();
+        }
       });
 
       popup.on('open', () => {
@@ -136,23 +160,6 @@ export class MapHomeComponent implements OnInit, AfterViewInit {
           );
         }
       });
-
-      // Función para manejar el zoom
-      const handleMarkerClick = () => {
-        if (this.activePopup) {
-          this.activePopup.remove();
-        }
-
-        this.map!.flyTo({
-          center: evento.coordenadas, // Coordenadas iniciales
-          zoom: 15,
-          speed: 0.5,
-        });
-
-        this.activePopup = popup;
-      };
-
-      marker1.getElement().addEventListener('click', handleMarkerClick);
     });
   }
 

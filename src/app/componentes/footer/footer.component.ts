@@ -5,10 +5,8 @@ import { Component, EventEmitter, Output } from '@angular/core';
   standalone: true,
   imports: [],
   template: `
-    <footer
-      class="fixed bottom-0 left-0 w-full z-10 bg-background text-text p-4 text-center border-t border-gray-200 rounded-t-lg shadow dark:bg-background dark:border-gray-700"
-    >
-      <div class="flex items-center justify-center my-3">
+    
+      <div class="flex items-center fixed bottom-0 left-0 right-0 justify-center md:my-1">
         <button
           (click)="mostrarEventoDashboard()"
           type="button"
@@ -16,11 +14,10 @@ import { Component, EventEmitter, Output } from '@angular/core';
         >
           <div class="flex justify-center items-center space-x-3">
             <img src="/iconos/Add.svg" class="s-3 w-4 h-4" alt="add-button" />
-            <h5>Reportar actividad paranormal</h5>
+            <p>Reportar actividad paranormal</p>
           </div>
         </button>
       </div>
-    </footer>
   `,
 })
 export class FooterComponent {

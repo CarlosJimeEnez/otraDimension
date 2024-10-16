@@ -7,7 +7,7 @@ import { Component } from '@angular/core';
   template: `
     <section>
       <div
-        class="flex py-6 items-center bg-background justify-center p-3  w-full fixed top-0 left-0 z-50 border-b border-gray-200  shadow dark:border-gray-700"
+        class="flex p-3 2xl:py-4 items-center bg-background justify-center w-full fixed top-0 left-0 z-50 border-b border-gray-200  shadow dark:border-gray-700"
       >
         <div class="absolute left-0 text-text p-3">
           <small>México/Puebla</small>
