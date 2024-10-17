@@ -49,6 +49,7 @@ import { Component, Input, OnDestroy, OnInit } from '@angular/core';
     .animate-bounce-delay-3 {
       animation: bounce 1s infinite;
     }
+
     @keyframes bounce {
       0%, 100% {
         transform: translateY(0);
@@ -94,6 +95,7 @@ export class TypingAnimationComponent implements OnInit, OnDestroy {
         this.displayText += this.fullText.charAt(this.index);
         this.index++;
       } else {
+        this.showCursor = false;
         clearInterval(this.typingInterval);
       }
     }, 50);

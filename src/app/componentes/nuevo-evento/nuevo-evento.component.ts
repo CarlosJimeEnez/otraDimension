@@ -50,145 +50,160 @@ import { FiltrosBadgeComponent } from '../filtros-badge/filtros-badge.component'
     <div
       class="fixed text-text space-y-4 top-16 w-8/12 max-h-[75vh] custom-scrollbar overflow-y-auto left-1/2 transform -translate-x-1/2  p-6 z-10 bg-white border border-gray-200 rounded-lg shadow dark:bg-background dark:border-gray-700"
     >
-      <div class="mb-4 border-b border-gray-200 dark:border-gray-700">
-        <ul class="flex items-center justify-start">
-          <li class="m-3 hover:text-white">
-            <button>
-              <span
-                class="bg-gray-100 text-text text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-text"
-                >Subir imagen</span
-              >
-            </button>
-          </li>
-          <li class="me-3 hidden">
-            <button>Localización</button>
-          </li>
-        </ul>
-      </div>
+      <h2 class="text-2xl font-semibold text-text dark:text-text">
+        Nuevo evento
+      </h2>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Crea un nuevo evento paranormal
+      </p>
+      <hr class="my-4 border-t border-gray-200 dark:border-gray-700" />
 
       <!-- Formulario -->
       <div class="dark:text-text" id="default-styled-tab-content">
+        <app-typing-animation
+          [fullText]="'Imagen donde ocurrieron los hechos?'"
+        ></app-typing-animation>
+
+        <!-- DropZONE -->
+        <div class="grid grid-cols-12 gap-4 mt-3">
+          <!-- Primer elemento que ocupa 8/12 columnas en pantallas medianas y superiores -->
+          <div class="col-span-12 md:col-span-8">
+            <ngx-dropzone
+              class="w-full h-64 dark:bg-gray-800"
+              (change)="onSelect($event)"
+            >
+              <ngx-dropzone-label>Arrastra y suelta</ngx-dropzone-label>
+              <ngx-dropzone-preview
+                *ngFor="let f of files"
+                [removable]="true"
+                (removed)="onRemove(f)"
+              >
+                <ngx-dropzone-label
+                  ><ngx-dropzone-image-preview
+                    ngProjectAs="ngx-dropzone-preview"
+                    *ngFor="let f of files"
+                    [file]="f"
+                  >
+                    <ngx-dropzone-label
+                      >{{ f.name }} ({{ f.type }})</ngx-dropzone-label
+                    >
+                  </ngx-dropzone-image-preview></ngx-dropzone-label
+                >
+              </ngx-dropzone-preview>
+            </ngx-dropzone>
+          </div>
+
+          <!-- Segundo elemento que ocupa 4/12 columnas en pantallas medianas y superiores -->
+          <div class="col-span-12 md:col-span-4 space-y-3">
+            <div
+              class="flex flex-wrap justify-start gap-2 items-start custom-scrollbar overflow-auto h-48"
+            >
+              @for (item of selectedBadges; track $index) {
+              <app-filtros-badge
+                *ngFor="let badge of selectedBadges"
+                [texto]="badge.texto"
+                [color]="badge.color"
+              ></app-filtros-badge>
+              }
+            </div>
+          </div>
+        </div>
+
+        @if (ImagenSeleccionada) {
+        <app-typing-animation
+          [fullText]="'Distorciona la realidad con los siguientes filtros:'"
+        ></app-typing-animation>
+
+        <!-- Efectos de imagen -->
+        <div class="flex  justify-start items-center overflow-x-auto mt-3">
+          <app-filtros-badge [texto]="'Oscurecer'"></app-filtros-badge>
+          <app-filtros-badge [texto]="'Sombras'"></app-filtros-badge>
+          <app-filtros-badge [texto]="'Blanco y Negro'"></app-filtros-badge>
+        </div>
+
+        <!-- Cambios bg-background -->
+        <div class="flex  justify-start items-center overflow-x-auto mt-3">
+          <app-filtros-badge
+            [texto]="'Niebla terrorífica'"
+            [color]="'var(--primary-v2)'"
+            [hoverColor]="'var(--primary-v1)'"
+            (click)="addBadge('Niebla terrorífica', 'var(--primary-v2)')"
+          ></app-filtros-badge>
+          <app-filtros-badge
+            [color]="'var(--primary-v2)'"
+            [texto]="'Fantasmas'"
+            [hoverColor]="'var(--primary-v1)'"
+          ></app-filtros-badge>
+          <app-filtros-badge
+            [texto]="'Fantasmas'"
+            [color]="'var(--primary-v2)'"
+            [hoverColor]="'var(--primary-v1)'"
+          ></app-filtros-badge>
+        </div>
+
+        } @if (BadgesSeleccionados) {
         <div
           class="p-4 rounded-lg bg-gray-50 dark:bg-gray-800"
           id="styled-profile"
           role="tabpanel"
           aria-labelledby="profile-tab"
         >
-          <!-- <p #textContainer class="text-sm">
-            Imagen de donde ocurrieron los hechos <span>...</span>
-          </p> -->
-          <app-typing-animation
-            [fullText]="'Imagen donde ocurrieron los hechos ?'"
-          ></app-typing-animation>
+          <p class="text-sm ">Que ocurrió en el lugar <span>?</span></p>
         </div>
 
-        <div class="flex justify-start items-start space-x-3 mt-3">
-          <!-- in app.component.html -->
-          <ngx-dropzone class="w-2/3" (change)="onSelect($event)">
-            <ngx-dropzone-label>Arrastra y suelta</ngx-dropzone-label>
-            <ngx-dropzone-preview
-              *ngFor="let f of files"
-              [removable]="true"
-              (removed)="onRemove(f)"
+        <div>
+          <form class="">
+            <textarea
+              id="message"
+              rows="4"
+              class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              placeholder="Escribe tu historia..."
+            ></textarea>
+          </form>
+        </div>
+
+        <div
+          class="p-4 rounded-lg bg-gray-50 dark:bg-gray-800"
+          id="styled-profile"
+          role="tabpanel"
+          aria-labelledby="profile-tab"
+        >
+          <p class="text-sm">
+            Por último, <span>¿Donde ocurrieron los hechos?</span>
+          </p>
+        </div>
+        <div
+          class="p-4 rounded-lg bg-gray-50 dark:bg-gray-800"
+          id="styled-profile"
+          role="tabpanel"
+          aria-labelledby="profile-tab"
+        >
+          <p class="text-sm">
+            Arrastra el mapa para seleccionar la ubicación exacta de los hechos
+          </p>
+        </div>
+
+        <!-- Map -->
+        <div id="mapa" class="map-container w-70 h-[300px]" #mapContainer></div>
+
+        <!-- // Botones de cerrar y publicar -->
+        <div>
+          <div class="flex justify-end items-center space-x-3">
+            <button
+              class="px-4 py-2 text-sm font-medium text-text dark:bg-accentv3 opacity-50 rounded-lg shadow-md hover:dark:bg-accent focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white"
+              (click)="cerrar()"
             >
-              <ngx-dropzone-label
-                ><ngx-dropzone-image-preview
-                  ngProjectAs="ngx-dropzone-preview"
-                  *ngFor="let f of files"
-                  [file]="f"
-                >
-                  <ngx-dropzone-label
-                    >{{ f.name }} ({{ f.type }})</ngx-dropzone-label
-                  >
-                </ngx-dropzone-image-preview></ngx-dropzone-label
-              >
-            </ngx-dropzone-preview>
-          </ngx-dropzone>
-          <div class="w-1/3 space-y-3">
-            <div class="flex flex-wrap justify-start gap-3 items-center">
-              <app-filtros-badge [texto]="'casa embrujada'"></app-filtros-badge>
-              <app-filtros-badge
-                [texto]="'niebla tenebrosa'"
-              ></app-filtros-badge>
-              <app-filtros-badge [texto]="'Humo'"></app-filtros-badge>
-              <app-filtros-badge
-                [texto]="'Figuras tenebrosas'"
-              ></app-filtros-badge>
-              <app-filtros-badge
-                [texto]="'Figuras tenebrosas'"
-              ></app-filtros-badge>
-              <app-filtros-badge [texto]="'oscuridad'"></app-filtros-badge>
-              <app-filtros-badge
-                [texto]="'invertir colores'"
-              ></app-filtros-badge>
-              <app-filtros-badge [texto]="'sombras'"></app-filtros-badge>
-              <app-filtros-badge [texto]="'blanco y negro'"></app-filtros-badge>
-              <app-filtros-badge [texto]="'desaturación'"></app-filtros-badge>
-            </div>
+              Cerrar
+            </button>
+            <button
+              class="px-4 py-2 text-sm font-medium text-text dark:bg-primaryv2 rounded-lg shadow-md hover:dark:bg-primary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white"
+              (click)="cerrar()"
+            >
+              Publicar
+            </button>
           </div>
         </div>
-      </div>
-
-      <div
-        class="p-4 rounded-lg bg-gray-50 dark:bg-gray-800"
-        id="styled-profile"
-        role="tabpanel"
-        aria-labelledby="profile-tab"
-      >
-        <p class="text-sm ">Que ocurrió en el lugar <span>?</span></p>
-      </div>
-
-      <div>
-        <form class="">
-          <textarea
-            id="message"
-            rows="4"
-            class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-            placeholder="Escribe tu historia..."
-          ></textarea>
-        </form>
-      </div>
-
-      <div
-        class="p-4 rounded-lg bg-gray-50 dark:bg-gray-800"
-        id="styled-profile"
-        role="tabpanel"
-        aria-labelledby="profile-tab"
-      >
-        <p class="text-sm">
-          Por último, <span>¿Donde ocurrieron los hechos?</span>
-        </p>
-      </div>
-      <div
-        class="p-4 rounded-lg bg-gray-50 dark:bg-gray-800"
-        id="styled-profile"
-        role="tabpanel"
-        aria-labelledby="profile-tab"
-      >
-        <p class="text-sm">
-          Arrastra el mapa para seleccionar la ubicación exacta de los hechos
-        </p>
-      </div>
-
-      <!-- Map -->
-      <div id="mapa" class="map-container w-70 h-[300px]" #mapContainer></div>
-
-      <!-- // Botones de cerrar y publicar -->
-      <div>
-        <div class="flex justify-end items-center space-x-3">
-          <button
-            class="px-4 py-2 text-sm font-medium text-text dark:bg-accentv3 opacity-50 rounded-lg shadow-md hover:dark:bg-accent focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white"
-            (click)="cerrar()"
-          >
-            Cerrar
-          </button>
-          <button
-            class="px-4 py-2 text-sm font-medium text-text dark:bg-primaryv2 rounded-lg shadow-md hover:dark:bg-primary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white"
-            (click)="cerrar()"
-          >
-            Publicar
-          </button>
-        </div>
+        }
       </div>
     </div>
   `,
@@ -199,6 +214,14 @@ export class NuevoEventoComponent implements AfterViewInit {
   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef;
   // Access the span element
   @ViewChild('textContainer') textContainer!: ElementRef;
+  ImagenSeleccionada: boolean = false;
+  BadgesSeleccionados: boolean = false;
+  selectedBadges: { texto: string; color: string }[] = [
+    {
+      texto: 'casa embrujada',
+      color: 'var(--primary-v2)',
+    },
+  ];
 
   files: File[] = [];
 
@@ -220,6 +243,7 @@ export class NuevoEventoComponent implements AfterViewInit {
   onSelect(event: any): void {
     console.log(event);
     this.files.push(...event.addedFiles);
+    this.ImagenSeleccionada = true;
   }
 
   onRemove(event: any): void {
@@ -284,5 +308,10 @@ export class NuevoEventoComponent implements AfterViewInit {
   // Método para obtener las coordenadas actuales del marker
   getCurrentMarkerPosition(): [number, number] {
     return this.center;
+  }
+
+  addBadge(texto: string, color: string) {
+    this.selectedBadges.push({ texto, color });
+    console.log(this.selectedBadges);
   }
 }
