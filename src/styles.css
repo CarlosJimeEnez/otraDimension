@@ -23,7 +23,7 @@
     --primary-v4: #532414;
     --primary-v5: #32160c;
 
-    --secondary: #fa397b;
+    --secondary: #6BEBB1;
     --accent: #e68ed7;
     --accent-v1: #c832ae;
     --accent-v2: #b7289b;
@@ -108,4 +108,5 @@
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: var(--accent-v1);
   }
+
 }

@@ -4,6 +4,7 @@ import {
   Component,
   ElementRef,
   Input,
+  OnInit,
   ViewChild,
 } from '@angular/core';
 import { center } from '@cloudinary/url-gen/qualifiers/textAlignment';
@@ -11,6 +12,9 @@ import mapboxgl from 'mapbox-gl';
 import { NgxDropzoneModule } from 'ngx-dropzone';
 import { TypingAnimationComponent } from '../typing-animation/typing-animation.component';
 import { FiltrosBadgeComponent } from '../filtros-badge/filtros-badge.component';
+import { Badges } from '../../interfaces/Badges';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormGroup, FormControl } from '@angular/forms';
 
 @Component({
   selector: 'app-nuevo-evento',
@@ -20,6 +24,7 @@ import { FiltrosBadgeComponent } from '../filtros-badge/filtros-badge.component'
     CommonModule,
     TypingAnimationComponent,
     FiltrosBadgeComponent,
+    ReactiveFormsModule,
   ],
   styles: [
     `
@@ -65,9 +70,9 @@ import { FiltrosBadgeComponent } from '../filtros-badge/filtros-badge.component'
         ></app-typing-animation>
 
         <!-- DropZONE -->
-        <div class="grid grid-cols-12 gap-4 mt-3">
+        <div class="grid grid-cols-12 gap-4 mt-3 me-3">
           <!-- Primer elemento que ocupa 8/12 columnas en pantallas medianas y superiores -->
-          <div class="col-span-12 md:col-span-8">
+          <div class="col-span-12 ">
             <ngx-dropzone
               class="w-full h-64 dark:bg-gray-800"
               (change)="onSelect($event)"
@@ -93,75 +98,127 @@ import { FiltrosBadgeComponent } from '../filtros-badge/filtros-badge.component'
             </ngx-dropzone>
           </div>
 
-          <!-- Segundo elemento que ocupa 4/12 columnas en pantallas medianas y superiores -->
-          <div class="col-span-12 md:col-span-4 space-y-3">
+          <div class="col-span-12">
             <div
-              class="flex flex-wrap justify-start gap-2 items-start custom-scrollbar overflow-auto h-48"
+              class="flex flex-wrap justify-start gap-1 custom-scrollbar overflow-auto h-auto "
             >
-              @for (item of selectedBadges; track $index) {
-              <app-filtros-badge
-                *ngFor="let badge of selectedBadges"
-                [texto]="badge.texto"
-                [color]="badge.color"
-              ></app-filtros-badge>
-              }
+              <div class="flex flex-wrap justify-start gap-1 h-auto">
+                @for (item of selectedBadges; track $index) {
+                <app-filtros-badge
+                  [texto]="item.texto"
+                  [color]="item.color"
+                  [hoverColor]="item.hoverColor"
+                  selectedBorderColor="var(--text)"
+                  (click)="removeBadge(item.texto)"
+                ></app-filtros-badge>
+                }
+              </div>
             </div>
           </div>
         </div>
 
         @if (ImagenSeleccionada) {
-        <app-typing-animation
-          [fullText]="'Distorciona la realidad con los siguientes filtros:'"
-        ></app-typing-animation>
+        <div class="mt-3">
+          <app-typing-animation
+            [fullText]="'Distorciona la realidad con los siguientes filtros:'"
+          ></app-typing-animation>
+        </div>
 
         <!-- Efectos de imagen -->
-        <div class="flex  justify-start items-center overflow-x-auto mt-3">
-          <app-filtros-badge [texto]="'Oscurecer'"></app-filtros-badge>
-          <app-filtros-badge [texto]="'Sombras'"></app-filtros-badge>
-          <app-filtros-badge [texto]="'Blanco y Negro'"></app-filtros-badge>
+        <div
+          class="flex custom-scrollbar justify-start items-center overflow-x-auto mt-3"
+        >
+          <app-filtros-badge
+            [texto]="'Oscurecer'"
+            [selected]="isSelected('Oscurecer')"
+            (click)="
+              toggleBadge('Oscurecer', 'var(--accent-v2)', 'var(--accent-v1)')
+            "
+          ></app-filtros-badge>
+          <app-filtros-badge
+            [texto]="'Sombras'"
+            [selected]="isSelected('Sombras')"
+            (click)="
+              toggleBadge('Sombras', 'var(--accent-v2)', 'var(--accent-v1)')
+            "
+          ></app-filtros-badge>
+          <app-filtros-badge
+            [texto]="'Blanco y Negro'"
+            [selected]="isSelected('Blanco y negro')"
+            (click)="
+              toggleBadge(
+                'Blanco y negro',
+                'var(--accent-v2)',
+                'var(--accent-v1)'
+              )
+            "
+          ></app-filtros-badge>
         </div>
 
         <!-- Cambios bg-background -->
-        <div class="flex  justify-start items-center overflow-x-auto mt-3">
-          <app-filtros-badge
-            [texto]="'Niebla terrorífica'"
-            [color]="'var(--primary-v2)'"
-            [hoverColor]="'var(--primary-v1)'"
-            (click)="addBadge('Niebla terrorífica', 'var(--primary-v2)')"
-          ></app-filtros-badge>
-          <app-filtros-badge
-            [color]="'var(--primary-v2)'"
-            [texto]="'Fantasmas'"
-            [hoverColor]="'var(--primary-v1)'"
-          ></app-filtros-badge>
-          <app-filtros-badge
-            [texto]="'Fantasmas'"
-            [color]="'var(--primary-v2)'"
-            [hoverColor]="'var(--primary-v1)'"
-          ></app-filtros-badge>
-        </div>
-
-        } @if (BadgesSeleccionados) {
         <div
-          class="p-4 rounded-lg bg-gray-50 dark:bg-gray-800"
-          id="styled-profile"
-          role="tabpanel"
-          aria-labelledby="profile-tab"
+          class="flex custom-scrollbar justify-start items-center overflow-x-auto mt-3"
         >
-          <p class="text-sm ">Que ocurrió en el lugar <span>?</span></p>
+          <app-filtros-badge
+            texto="Niebla terrorífica"
+            color="var(--primary-v2)"
+            hoverColor="var(--primary-v1)"
+            selectedBorderColor="var(--text)"
+            [selected]="isSelected('Niebla terrorífica')"
+            (click)="
+              toggleBadge(
+                'Niebla terrorífica',
+                'var(--primary-v2)',
+                'var(--primary-v1)'
+              )
+            "
+          ></app-filtros-badge>
+          <app-filtros-badge
+            [texto]="'Fantasmas'"
+            [color]="'var(--primary-v2)'"
+            [hoverColor]="'var(--primary-v1)'"
+            selectedBorderColor="var(--text)"
+            [selected]="isSelected('Fantasmas')"
+            (click)="
+              toggleBadge('Fantasmas', 'var(--primary-v2)', 'var(--primary-v1)')
+            "
+          ></app-filtros-badge>
+          <app-filtros-badge
+            [texto]="'Murcielagos'"
+            [color]="'var(--primary-v2)'"
+            [hoverColor]="'var(--primary-v1)'"
+            selectedBorderColor="var(--text)"
+            [selected]="isSelected('Murcielagos')"
+            (click)="
+              toggleBadge(
+                'Murcielagos',
+                'var(--primary-v2)',
+                'var(--primary-v1)'
+              )
+            "
+          ></app-filtros-badge>
         </div>
 
-        <div>
-          <form class="">
-            <textarea
-              id="message"
-              rows="4"
-              class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              placeholder="Escribe tu historia..."
-            ></textarea>
-          </form>
+        <!-- Story Form -->
+        } @if (BadgesSeleccionado) {
+        <div class="space-y-3 mt-3">
+          <app-typing-animation
+            [fullText]="'Que ocurrió en el lugar?'"
+          ></app-typing-animation>
+          <div>
+            <form class="" [formGroup]="form" (ngSubmit)="onSubmit()">
+              <textarea
+                id="message"
+                rows="4"
+                formControlName="story"
+                class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                placeholder="Escribe tu historia..."
+              ></textarea>
+            </form>
+          </div>
         </div>
 
+        } @if (storyText) {
         <div
           class="p-4 rounded-lg bg-gray-50 dark:bg-gray-800"
           id="styled-profile"
@@ -208,20 +265,43 @@ import { FiltrosBadgeComponent } from '../filtros-badge/filtros-badge.component'
     </div>
   `,
 })
-export class NuevoEventoComponent implements AfterViewInit {
+export class NuevoEventoComponent implements AfterViewInit, OnInit {
   @Input() mapa!: mapboxgl.Map | undefined;
   @Input() center!: [number, number];
   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef;
   // Access the span element
   @ViewChild('textContainer') textContainer!: ElementRef;
   ImagenSeleccionada: boolean = false;
-  BadgesSeleccionados: boolean = false;
-  selectedBadges: { texto: string; color: string }[] = [
+  BadgesSeleccionado: boolean = false;
+  selectedBadges: Badges[] = [
     {
       texto: 'casa embrujada',
       color: 'var(--primary-v2)',
+      hoverColor: 'var(--primary-v1)',
     },
   ];
+  form: FormGroup;
+  storyText: string = '';
+
+  constructor(private fb: FormBuilder) {
+    this.form = this.fb.group({
+      story: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(10),
+          Validators.maxLength(100),
+        ],
+      ],
+    });
+  }
+
+  ngOnInit(): void {
+    this.form.get('story')?.valueChanges.subscribe((value) => {
+      this.storyText = value;
+      console.log(this.storyText);
+    });
+  }
 
   files: File[] = [];
 
@@ -310,8 +390,41 @@ export class NuevoEventoComponent implements AfterViewInit {
     return this.center;
   }
 
-  addBadge(texto: string, color: string) {
-    this.selectedBadges.push({ texto, color });
-    console.log(this.selectedBadges);
+  addBadge(texto: string, color: string, hoverColor: string): void {
+    const exists = this.selectedBadges.some((badge) => badge.texto === texto);
+    if (!exists) {
+      this.selectedBadges = [
+        ...this.selectedBadges,
+        { texto, color, hoverColor },
+      ];
+      console.log(this.selectedBadges);
+    }
+  }
+
+  removeBadge(texto: string): void {
+    this.selectedBadges = this.selectedBadges.filter(
+      (badge) => badge.texto !== texto
+    );
+  }
+
+  isSelected(texto: string): boolean {
+    return this.selectedBadges.some((badge) => badge.texto === texto);
+  }
+
+  toggleBadge(texto: string, color: string, hoverColor: string): void {
+    const exists = this.selectedBadges.some((badge) => badge.texto === texto);
+    this.BadgesSeleccionado = true;
+    if (exists) {
+      this.removeBadge(texto);
+    } else {
+      this.addBadge(texto, color, hoverColor);
+    }
+  }
+
+  onSubmit(): void {
+    if (this.form.valid) {
+      console.log(this.form.value);
+      this.storyText = this.form.value.story;
+    }
   }
 }

@@ -63,7 +63,8 @@ import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 })
 export class TypingAnimationComponent implements OnInit, OnDestroy {
   @Input() fullText: string = '';
-
+  @Input() typingSpeed: number = 50;
+  isComplete: boolean = false;
   displayText: string = '';
   isThinking: boolean = true;
   showCursor: boolean = true;
@@ -82,6 +83,8 @@ export class TypingAnimationComponent implements OnInit, OnDestroy {
     this.cursorInterval = setInterval(() => {
       this.showCursor = !this.showCursor;
     }, 500);
+
+   
   }
 
   ngOnDestroy() {
@@ -95,9 +98,14 @@ export class TypingAnimationComponent implements OnInit, OnDestroy {
         this.displayText += this.fullText.charAt(this.index);
         this.index++;
       } else {
-        this.showCursor = false;
+        this.isComplete = true;
+        // Mantener el cursor parpadeando por un momento después de terminar
+        setTimeout(() => {
+          clearInterval(this.cursorInterval);
+          this.showCursor = false;
+        }, 500); // El cursor permanecerá parpadeando 500ms después de terminar
         clearInterval(this.typingInterval);
       }
-    }, 50);
+    }, this.typingSpeed);
   }
 }
