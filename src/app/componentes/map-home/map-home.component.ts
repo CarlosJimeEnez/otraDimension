@@ -4,12 +4,14 @@ import {
   AfterViewInit,
   ViewChild,
   ElementRef,
+  OnDestroy,
 } from '@angular/core';
 import * as mapboxgl from 'mapbox-gl';
 import { Eventos } from '../../interfaces/Eventos';
 import { EventosDetallesComponent } from '../eventos-detalles/eventos-detalles.component';
 import { FooterComponent } from '../footer/footer.component';
 import { NuevoEventoComponent } from '../nuevo-evento/nuevo-evento.component';
+import { MapboxService } from '../../services/mapbox.service';
 
 @Component({
   selector: 'app-map-home',
@@ -43,7 +45,7 @@ import { NuevoEventoComponent } from '../nuevo-evento/nuevo-evento.component';
     `,
   ],
 })
-export class MapHomeComponent implements OnInit, AfterViewInit {
+export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef;
   map: mapboxgl.Map | undefined;
   center: [number, number] = [-98.18318658713179, 19.047718948679815];
@@ -67,29 +69,21 @@ export class MapHomeComponent implements OnInit, AfterViewInit {
     },
   ];
 
-  constructor() {}
+  constructor(private _mapboxService: MapboxService) {}
+  ngOnDestroy(): void {
+    this._mapboxService.destroyMap();
+  }
 
   ngOnInit() {}
   ngAfterViewInit(): void {
-    this.cargarMapa();
+    // this.cargarMapa();
+    this.map = this._mapboxService.initializeMap('map', {
+      center: [-73.935242, 40.730610], // Personaliza las opciones según necesites
+    });
+    console.log(this.map);
     this.cargarEventos();
   }
 
-  cargarMapa(): void {
-    this.map = new mapboxgl.Map({
-      accessToken:
-        'pk.eyJ1IjoiY2FlbG9zZGV2IiwiYSI6ImNtMjVxZzJjbTB1aXMybG9pN2gzZTU2ZHEifQ.iEZQ-BTw9GLmRXyQB8L3mA',
-      container: 'map',
-      style: 'mapbox://styles/mapbox/dark-v11',
-      center: this.center,
-      zoom: 11,
-      pitch: 25, // Inclinación para efecto 3D
-      bearing: -60, // Rotación del mapa
-      antialias: true, // Suaviza los bordes de las geometrías
-    });
-    // Añadir controles de navegación
-    this.map!.addControl(new mapboxgl.NavigationControl());
-  }
 
   cargarEventos(): void {
     this.eventos.forEach((evento) => {

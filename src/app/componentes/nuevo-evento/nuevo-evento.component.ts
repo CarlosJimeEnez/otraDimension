@@ -15,6 +15,7 @@ import { FiltrosBadgeComponent } from '../filtros-badge/filtros-badge.component'
 import { Badges } from '../../interfaces/Badges';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormGroup, FormControl } from '@angular/forms';
+import { MapboxService } from '../../services/mapbox.service';
 
 @Component({
   selector: 'app-nuevo-evento',
@@ -117,6 +118,7 @@ import { FormGroup, FormControl } from '@angular/forms';
           </div>
         </div>
 
+       
         @if (ImagenSeleccionada) {
         <div class="mt-3">
           <app-typing-animation
@@ -219,32 +221,23 @@ import { FormGroup, FormControl } from '@angular/forms';
         </div>
 
         } @if (storyText) {
-        <div
-          class="p-4 rounded-lg bg-gray-50 dark:bg-gray-800"
-          id="styled-profile"
-          role="tabpanel"
-          aria-labelledby="profile-tab"
-        >
-          <p class="text-sm">
-            Por último, <span>¿Donde ocurrieron los hechos?</span>
-          </p>
-        </div>
-        <div
-          class="p-4 rounded-lg bg-gray-50 dark:bg-gray-800"
-          id="styled-profile"
-          role="tabpanel"
-          aria-labelledby="profile-tab"
-        >
-          <p class="text-sm">
-            Arrastra el mapa para seleccionar la ubicación exacta de los hechos
-          </p>
+        <div class="space-y-3 mt-3">
+          <app-typing-animation
+            [fullText]="'Por último, ¿Donde ocurrieron los hechos?'"
+          ></app-typing-animation>
         </div>
 
-        <!-- Map -->
-        <div id="mapa" class="map-container w-70 h-[300px]" #mapContainer></div>
+           <!-- Map -->
+        <div id="map" class="map-container w-70 h-[300px]" #mapContainer></div>
+
+        <div class="space-y-3">
+          <app-typing-animation
+            [fullText]="'Arrastra el mapa para ubicar el lugar de los hechos'"
+          ></app-typing-animation>
+        </div>
 
         <!-- // Botones de cerrar y publicar -->
-        <div>
+        <div class="space-y-3 my-3">
           <div class="flex justify-end items-center space-x-3">
             <button
               class="px-4 py-2 text-sm font-medium text-text dark:bg-accentv3 opacity-50 rounded-lg shadow-md hover:dark:bg-accent focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white"
@@ -271,19 +264,16 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef;
   // Access the span element
   @ViewChild('textContainer') textContainer!: ElementRef;
+  private observer: MutationObserver | null = null;
+
   ImagenSeleccionada: boolean = false;
   BadgesSeleccionado: boolean = false;
-  selectedBadges: Badges[] = [
-    {
-      texto: 'casa embrujada',
-      color: 'var(--primary-v2)',
-      hoverColor: 'var(--primary-v1)',
-    },
-  ];
+  selectedBadges: Badges[] = [];
   form: FormGroup;
   storyText: string = '';
+  map: mapboxgl.Map | null = null;
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private _mapService: MapboxService) {
     this.form = this.fb.group({
       story: [
         '',
@@ -306,17 +296,20 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
   files: File[] = [];
 
   ngAfterViewInit(): void {
-    if (this.mapa) {
-      this.reiniciarMap(this.mapa);
-      this.cargarMapa(this.mapa);
-      const marker = this.addMarker();
-
+    this.map = this._mapService.getMap();
+    console.log(this.map);
+    if (this.map) {
+      const mapContainerElement = this.mapContainer.nativeElement;
+      mapContainerElement.appendChild(this.map.getContainer());
+      console.log(this.map);
+      this.map.resize();
       // Actualizar la posición del marker cuando el mapa se mueve
-      this.mapa.on('move', () => {
-        const center = this.mapa!.getCenter();
-        this.center = [center.lng, center.lat];
-        marker.setLngLat(this.center);
-      });
+      // this.map.on('move', () => {
+      //   const center = this.map!.getCenter();
+      //   this.center = [center.lng, center.lat];
+      //   marker.setLngLat(this.center);
+      // });
+      this.map.setZoom(14);
     }
   }
 
@@ -367,21 +360,13 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
     mapa.setPitch(pitch);
   }
 
-  // Cargar Mapa
-  cargarMapa(mapa: mapboxgl.Map): void {
-    const mapContainerElement = this.mapContainer.nativeElement;
-    mapContainerElement.appendChild(mapa.getContainer());
-    console.log(mapa);
-    mapa.resize();
-  }
-
   addMarker(): mapboxgl.Marker {
     const marker1 = new mapboxgl.Marker({
       color: 'var(--primary)',
       draggable: false,
     })
       .setLngLat(this.center)
-      .addTo(this.mapa!);
+      .addTo(this.map!);
     return marker1;
   }
 
