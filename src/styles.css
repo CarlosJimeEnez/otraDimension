@@ -108,20 +108,4 @@
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: var(--accent-v1);
   }
-
-  .typing-text {
-    position: relative;
-    font-family: 'Courier', monospace;
-  }
-  
-  #typed-text::after {
-    content: '|'; /* This creates the typing cursor */
-    animation: blink 1s infinite;
-  }
-  
-  @keyframes blink {
-    0% { opacity: 1; }
-    50% { opacity: 0; }
-    100% { opacity: 1; }
-  }
 }

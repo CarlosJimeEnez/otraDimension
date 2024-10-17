@@ -9,13 +9,44 @@ import {
 import { center } from '@cloudinary/url-gen/qualifiers/textAlignment';
 import mapboxgl from 'mapbox-gl';
 import { NgxDropzoneModule } from 'ngx-dropzone';
+import { TypingAnimationComponent } from '../typing-animation/typing-animation.component';
+import { FiltrosBadgeComponent } from '../filtros-badge/filtros-badge.component';
 
 @Component({
   selector: 'app-nuevo-evento',
   standalone: true,
-  imports: [NgxDropzoneModule, CommonModule],
+  imports: [
+    NgxDropzoneModule,
+    CommonModule,
+    TypingAnimationComponent,
+    FiltrosBadgeComponent,
+  ],
+  styles: [
+    `
+      .typing-text {
+        position: relative;
+      }
+
+      #typed-text::after {
+        content: '|'; /* This creates the typing cursor */
+        animation: blink 1s infinite;
+      }
+
+      @keyframes blink {
+        0% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+    `,
+  ],
   template: `
-    <div class="fixed inset-0 bg-background opacity-50 z-5 "></div>
+    <div class="fixed inset-0 bg-background opacity-70 z-5 "></div>
     <div
       class="fixed text-text space-y-4 top-16 w-8/12 max-h-[75vh] custom-scrollbar overflow-y-auto left-1/2 transform -translate-x-1/2  p-6 z-10 bg-white border border-gray-200 rounded-lg shadow dark:bg-background dark:border-gray-700"
     >
@@ -43,14 +74,17 @@ import { NgxDropzoneModule } from 'ngx-dropzone';
           role="tabpanel"
           aria-labelledby="profile-tab"
         >
-          <p class="text-sm typing">
+          <!-- <p #textContainer class="text-sm">
             Imagen de donde ocurrieron los hechos <span>...</span>
-          </p>
+          </p> -->
+          <app-typing-animation
+            [fullText]="'Imagen donde ocurrieron los hechos ?'"
+          ></app-typing-animation>
         </div>
 
-        <div class="flex justify-center items-center space-x-3 ">
+        <div class="flex justify-start items-start space-x-3 mt-3">
           <!-- in app.component.html -->
-          <ngx-dropzone class="w-1/2 mt-3" (change)="onSelect($event)">
+          <ngx-dropzone class="w-2/3" (change)="onSelect($event)">
             <ngx-dropzone-label>Arrastra y suelta</ngx-dropzone-label>
             <ngx-dropzone-preview
               *ngFor="let f of files"
@@ -70,7 +104,28 @@ import { NgxDropzoneModule } from 'ngx-dropzone';
               >
             </ngx-dropzone-preview>
           </ngx-dropzone>
-          <div class="w-1/2">Another</div>
+          <div class="w-1/3 space-y-3">
+            <div class="flex flex-wrap justify-start gap-3 items-center">
+              <app-filtros-badge [texto]="'casa embrujada'"></app-filtros-badge>
+              <app-filtros-badge
+                [texto]="'niebla tenebrosa'"
+              ></app-filtros-badge>
+              <app-filtros-badge [texto]="'Humo'"></app-filtros-badge>
+              <app-filtros-badge
+                [texto]="'Figuras tenebrosas'"
+              ></app-filtros-badge>
+              <app-filtros-badge
+                [texto]="'Figuras tenebrosas'"
+              ></app-filtros-badge>
+              <app-filtros-badge [texto]="'oscuridad'"></app-filtros-badge>
+              <app-filtros-badge
+                [texto]="'invertir colores'"
+              ></app-filtros-badge>
+              <app-filtros-badge [texto]="'sombras'"></app-filtros-badge>
+              <app-filtros-badge [texto]="'blanco y negro'"></app-filtros-badge>
+              <app-filtros-badge [texto]="'desaturación'"></app-filtros-badge>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -80,9 +135,7 @@ import { NgxDropzoneModule } from 'ngx-dropzone';
         role="tabpanel"
         aria-labelledby="profile-tab"
       >
-        <p class="text-sm ">
-          Que ocurrió en el lugar <span>?</span>
-        </p>
+        <p class="text-sm ">Que ocurrió en el lugar <span>?</span></p>
       </div>
 
       <div>
@@ -144,11 +197,12 @@ export class NuevoEventoComponent implements AfterViewInit {
   @Input() mapa!: mapboxgl.Map | undefined;
   @Input() center!: [number, number];
   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef;
+  // Access the span element
+  @ViewChild('textContainer') textContainer!: ElementRef;
+
   files: File[] = [];
 
   ngAfterViewInit(): void {
-
-
     if (this.mapa) {
       this.reiniciarMap(this.mapa);
       this.cargarMapa(this.mapa);
@@ -161,10 +215,6 @@ export class NuevoEventoComponent implements AfterViewInit {
         marker.setLngLat(this.center);
       });
     }
-  }
-
-  typeText(): void {
-    if(index < )
   }
 
   onSelect(event: any): void {
