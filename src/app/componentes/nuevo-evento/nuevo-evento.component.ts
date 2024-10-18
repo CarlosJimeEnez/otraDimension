@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import {
+  AfterViewChecked,
   AfterViewInit,
   Component,
   ElementRef,
@@ -16,6 +17,9 @@ import { Badges } from '../../interfaces/Badges';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormGroup, FormControl } from '@angular/forms';
 import { MapboxService } from '../../services/mapbox.service';
+import { set } from '@cloudinary/url-gen/actions/variable';
+import { UploadService } from '../../services/upload.service';
+import { environment } from '../../environment/environment.dev';
 
 @Component({
   selector: 'app-nuevo-evento',
@@ -64,8 +68,28 @@ import { MapboxService } from '../../services/mapbox.service';
       </p>
       <hr class="my-4 border-t border-gray-200 dark:border-gray-700" />
 
+      <div class="space-y-3 mt-3">
+        <app-typing-animation
+          [fullText]="
+            '¿Donde ocurrieron los hechos? Arrastra el mapa para ubicar el lugar de los hechos.'
+          "
+        ></app-typing-animation>
+      </div>
+
+      <div id="map" class="map-container w-70 h-[300px]" #mapContainer></div>
+      <div class="flex justify-start items-center">
+        <button
+          type="button"
+          class="px-4 py-2 text-sm font-medium text-white dark:bg-secondaryv1 hover:dark:bg-secondary rounded-lg shadow-md hover:dark:text-white  focus:outline-none"
+          (click)="guardarPosicion()"
+        >
+          Guardar
+        </button>
+      </div>
+
       <!-- Formulario -->
       <div class="dark:text-text" id="default-styled-tab-content">
+        @if(localizacioneSeleccionada) {
         <app-typing-animation
           [fullText]="'Imagen donde ocurrieron los hechos?'"
         ></app-typing-animation>
@@ -117,9 +141,7 @@ import { MapboxService } from '../../services/mapbox.service';
             </div>
           </div>
         </div>
-
-       
-        @if (ImagenSeleccionada) {
+        } @if (ImagenSeleccionada) {
         <div class="mt-3">
           <app-typing-animation
             [fullText]="'Distorciona la realidad con los siguientes filtros:'"
@@ -200,8 +222,6 @@ import { MapboxService } from '../../services/mapbox.service';
             "
           ></app-filtros-badge>
         </div>
-
-        <!-- Story Form -->
         } @if (BadgesSeleccionado) {
         <div class="space-y-3 mt-3">
           <app-typing-animation
@@ -216,41 +236,48 @@ import { MapboxService } from '../../services/mapbox.service';
                 class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 placeholder="Escribe tu historia..."
               ></textarea>
+
+              @if (form.get('story')?.invalid && form.get('story')?.dirty ||
+              form.get('story')?.touched) {
+              <small
+                class="text-red-500"
+                *ngIf="form.get('story')?.errors?.['required']"
+              >
+                La historia es requerida.
+              </small>
+              <small
+                class="text-red-500"
+                *ngIf="form.get('story')?.errors?.['minlength']"
+              >
+                La historia debe tener al menos 10 caracteres.
+              </small>
+              <small
+                class="text-red-500"
+                *ngIf="form.get('story')?.errors?.['maxlength']"
+              >
+                La historia no puede tener más de 100 caracteres.
+              </small>
+              }
+
+              <!-- // Botones de cerrar y publicar -->
+              <div class="space-y-3 my-3">
+                <div class="flex justify-end items-center space-x-3">
+                  <button
+                    type="button"
+                    class="px-4 py-2 text-sm font-medium text-text dark:bg-accentv3 opacity-90 rounded-lg shadow-md hover:dark:text-white hover:dark:bg-accent focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white"
+                    (click)="cerrar()"
+                  >
+                    Cerrar
+                  </button>
+                  <button
+                    type="submit"
+                    class="px-4 py-2 text-sm font-medium text-text dark:bg-primaryv2 rounded-lg shadow-md hover:dark:bg-primary hover:dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white"
+                  >
+                    Publicar
+                  </button>
+                </div>
+              </div>
             </form>
-          </div>
-        </div>
-
-        } @if (storyText) {
-        <div class="space-y-3 mt-3">
-          <app-typing-animation
-            [fullText]="'Por último, ¿Donde ocurrieron los hechos?'"
-          ></app-typing-animation>
-        </div>
-
-           <!-- Map -->
-        <div id="map" class="map-container w-70 h-[300px]" #mapContainer></div>
-
-        <div class="space-y-3">
-          <app-typing-animation
-            [fullText]="'Arrastra el mapa para ubicar el lugar de los hechos'"
-          ></app-typing-animation>
-        </div>
-
-        <!-- // Botones de cerrar y publicar -->
-        <div class="space-y-3 my-3">
-          <div class="flex justify-end items-center space-x-3">
-            <button
-              class="px-4 py-2 text-sm font-medium text-text dark:bg-accentv3 opacity-50 rounded-lg shadow-md hover:dark:bg-accent focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white"
-              (click)="cerrar()"
-            >
-              Cerrar
-            </button>
-            <button
-              class="px-4 py-2 text-sm font-medium text-text dark:bg-primaryv2 rounded-lg shadow-md hover:dark:bg-primary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white"
-              (click)="cerrar()"
-            >
-              Publicar
-            </button>
           </div>
         </div>
         }
@@ -259,21 +286,24 @@ import { MapboxService } from '../../services/mapbox.service';
   `,
 })
 export class NuevoEventoComponent implements AfterViewInit, OnInit {
-  @Input() mapa!: mapboxgl.Map | undefined;
   @Input() center!: [number, number];
   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef;
   // Access the span element
   @ViewChild('textContainer') textContainer!: ElementRef;
-  private observer: MutationObserver | null = null;
 
+  localizacioneSeleccionada: boolean = false;
   ImagenSeleccionada: boolean = false;
   BadgesSeleccionado: boolean = false;
   selectedBadges: Badges[] = [];
   form: FormGroup;
   storyText: string = '';
   map: mapboxgl.Map | null = null;
-
-  constructor(private fb: FormBuilder, private _mapService: MapboxService) {
+  files: File[] = [];
+  constructor(
+    private fb: FormBuilder,
+    private _mapService: MapboxService,
+    private _uploadService: UploadService
+  ) {
     this.form = this.fb.group({
       story: [
         '',
@@ -289,27 +319,29 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
   ngOnInit(): void {
     this.form.get('story')?.valueChanges.subscribe((value) => {
       this.storyText = value;
-      console.log(this.storyText);
     });
   }
-
-  files: File[] = [];
 
   ngAfterViewInit(): void {
     this.map = this._mapService.getMap();
     console.log(this.map);
     if (this.map) {
       const mapContainerElement = this.mapContainer.nativeElement;
-      mapContainerElement.appendChild(this.map.getContainer());
+      mapContainerElement.appendChild(this.map?.getContainer());
       console.log(this.map);
-      this.map.resize();
+      this.map?.resize();
+      this.reiniciarMap(this.map);
+
+      const marker = this.addMarker();
       // Actualizar la posición del marker cuando el mapa se mueve
-      // this.map.on('move', () => {
-      //   const center = this.map!.getCenter();
-      //   this.center = [center.lng, center.lat];
-      //   marker.setLngLat(this.center);
-      // });
-      this.map.setZoom(14);
+      this.map.on('move', () => {
+        const center = this.map!.getCenter();
+        this.center = [center.lng, center.lat];
+        marker.setLngLat(this.center);
+      });
+      this.map?.setZoom(14);
+    } else {
+      console.log('No se ha podido cargar el mapa');
     }
   }
 
@@ -346,14 +378,6 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
     while (popups.length > 0) {
       popups[0].remove();
     }
-
-    // Opcional: Restablecer la vista del mapa a su estado inicial
-    // mapa.setCenter([-74.5, 40]); // Coordenadas iniciales
-    // mapa.setZoom(9); // Zoom inicial
-    // mapa.setBearing(0); // Rotación inicial
-    // mapa.setPitch(0); // Inclinación inicial
-
-    // Opcional: Si quieres mantener el estado actual
     mapa.setCenter(center);
     mapa.setZoom(zoom);
     mapa.setBearing(bearing);
@@ -398,7 +422,9 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
 
   toggleBadge(texto: string, color: string, hoverColor: string): void {
     const exists = this.selectedBadges.some((badge) => badge.texto === texto);
+
     this.BadgesSeleccionado = true;
+
     if (exists) {
       this.removeBadge(texto);
     } else {
@@ -406,10 +432,45 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
     }
   }
 
-  onSubmit(): void {
-    if (this.form.valid) {
-      console.log(this.form.value);
-      this.storyText = this.form.value.story;
+  onSubmit(): boolean {
+    if (this.files.length > 0) {
+      if (this.form.valid) {
+        console.log(this.form.value);
+        this.storyText = this.form.value.story;
+        this.resetForm();
+        this.upload();
+        console.log('No se ha seleccionado una imagen');
+      } else {
+        this.form.markAllAsTouched();
+      }
     }
+    return false;
+  }
+
+  guardarPosicion(): void {
+    this.localizacioneSeleccionada = true;
+  }
+
+  private upload() {
+    console.log('Subiendo imagen y texto a la base de datos');
+    const file_data = this.files[0];
+    const form_data = new FormData();
+
+    form_data.append('file', file_data);
+    form_data.append('upload_preset', 'otraDimensionProd');
+    form_data.append('cloud_name', environment.cloudName);
+
+    this._uploadService.uploadImage(form_data).subscribe({
+      next: (response: any) => {
+        console.log(response);
+      },
+      error: (error) => {
+        console.error(error);
+      },
+    });
+  }
+
+  private resetForm() {
+    this.form.reset();
   }
 }

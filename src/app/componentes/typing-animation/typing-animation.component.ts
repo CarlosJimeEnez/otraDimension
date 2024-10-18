@@ -63,7 +63,7 @@ import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 })
 export class TypingAnimationComponent implements OnInit, OnDestroy {
   @Input() fullText: string = '';
-  @Input() typingSpeed: number = 50;
+  @Input() typingSpeed: number = 20;
   isComplete: boolean = false;
   displayText: string = '';
   isThinking: boolean = true;
@@ -83,8 +83,6 @@ export class TypingAnimationComponent implements OnInit, OnDestroy {
     this.cursorInterval = setInterval(() => {
       this.showCursor = !this.showCursor;
     }, 500);
-
-   
   }
 
   ngOnDestroy() {

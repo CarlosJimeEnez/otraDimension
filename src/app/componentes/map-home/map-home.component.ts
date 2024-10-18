@@ -78,12 +78,11 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     // this.cargarMapa();
     this.map = this._mapboxService.initializeMap('map', {
-      center: [-73.935242, 40.730610], // Personaliza las opciones según necesites
+      center: this.center, // Personaliza las opciones según necesites
     });
     console.log(this.map);
     this.cargarEventos();
   }
-
 
   cargarEventos(): void {
     this.eventos.forEach((evento) => {
@@ -119,14 +118,14 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
           zoom: 14,
           speed: 0.5,
         });
-        
+
         // Togglear el popup
         if (popup.isOpen()) {
           popup.remove();
         } else {
           popup.addTo(this.map!);
         }
-        
+
         this.activePopup = popup;
       });
 

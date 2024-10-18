@@ -15,6 +15,8 @@ module.exports = {
         primaryv5: 'var(--primary-v5)',
 
         secondary: 'var(--secondary)',
+        secondaryv1: 'var(--secondary-v2)',
+        
         accent: 'var(--accent)',
         accentv1: 'var(--accent-v1)',
         accentv2: 'var(--accent-v2)',
