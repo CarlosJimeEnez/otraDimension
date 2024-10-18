@@ -91,7 +91,7 @@ import { environment } from '../../environment/environment.dev';
       <div class="dark:text-text" id="default-styled-tab-content">
         @if(localizacioneSeleccionada) {
         <app-typing-animation
-          [fullText]="'Imagen donde ocurrieron los hechos?'"
+          [fullText]="'Imagen de donde ocurrieron los hechos?'"
         ></app-typing-animation>
 
         <!-- DropZONE -->
@@ -115,7 +115,7 @@ import { environment } from '../../environment/environment.dev';
                     [file]="f"
                   >
                     <ngx-dropzone-label
-                      >{{ f.name }} ({{ f.type }})</ngx-dropzone-label
+                      ></ngx-dropzone-label
                     >
                   </ngx-dropzone-image-preview></ngx-dropzone-label
                 >
