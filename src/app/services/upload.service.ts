@@ -10,10 +10,27 @@ import { environment } from '../environment/environment.dev';
   providedIn: 'root',
 })
 export class UploadService {
-  url: string = `${environment.apiUrl}/v1_1/demo/image/upload`;
+  baseUrl: string = `https://res.cloudinary.com/${environment.cloudinary.cloudName}/image/upload`;
+  uploadUrl: string = `https://api.cloudinary.com/v1_1/${environment.cloudinary.cloudName}/image/upload`;
   constructor(private http: HttpClient) {}
 
-  uploadImage(data: any): Observable<any> {
-    return this.http.post(this.url, data);
+  uploadImage(file: File, backgroundPrompt: string): Observable<any> {
+    const form_data = new FormData();
+
+    form_data.append('file', file);
+    form_data.append('upload_preset', environment.cloudinary.uploadPreset);
+    form_data.append('cloud_name', environment.cloudinary.cloudName);
+
+    // const transformation = this.buildBackgroundTransformation(backgroundPrompt);
+    // form_data.append('transformation', transformation);
+
+    return this.http.post(this.uploadUrl, form_data);
+  }
+
+  // Método para generar la URL con transformaciones AI
+  getAiTransformedUrl(publicId: string, backgroundPrompt: string): string {
+    const encodedPrompt = encodeURIComponent(backgroundPrompt);
+    const transformation = `e_gen_background_replace:prompt_${encodedPrompt}`;
+    return `https://res.cloudinary.com/${environment.cloudinary.cloudName}/image/upload/${transformation}/${publicId}`;
   }
 }

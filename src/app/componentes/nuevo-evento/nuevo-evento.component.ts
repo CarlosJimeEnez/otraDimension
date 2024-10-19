@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import {
-  AfterViewChecked,
   AfterViewInit,
   Component,
   ElementRef,
@@ -17,7 +16,7 @@ import { Badges } from '../../interfaces/Badges';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormGroup, FormControl } from '@angular/forms';
 import { MapboxService } from '../../services/mapbox.service';
-import { set } from '@cloudinary/url-gen/actions/variable';
+
 import { UploadService } from '../../services/upload.service';
 import { environment } from '../../environment/environment.dev';
 
@@ -114,11 +113,8 @@ import { environment } from '../../environment/environment.dev';
                     *ngFor="let f of files"
                     [file]="f"
                   >
-                    <ngx-dropzone-label
-                      ></ngx-dropzone-label
-                    >
-                  </ngx-dropzone-image-preview></ngx-dropzone-label
-                >
+                    <ngx-dropzone-label></ngx-dropzone-label> </ngx-dropzone-image-preview
+                ></ngx-dropzone-label>
               </ngx-dropzone-preview>
             </ngx-dropzone>
           </div>
@@ -299,6 +295,11 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
   storyText: string = '';
   map: mapboxgl.Map | null = null;
   files: File[] = [];
+  processedImageUrl: any | null = null;
+  isUploading: boolean = false;
+  originalImageUrl: string = '';
+  transformedImageUrl: string = '';
+
   constructor(
     private fb: FormBuilder,
     private _mapService: MapboxService,
@@ -422,7 +423,6 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
 
   toggleBadge(texto: string, color: string, hoverColor: string): void {
     const exists = this.selectedBadges.some((badge) => badge.texto === texto);
-
     this.BadgesSeleccionado = true;
 
     if (exists) {
@@ -433,18 +433,24 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
   }
 
   onSubmit(): boolean {
-    if (this.files.length > 0) {
-      if (this.form.valid) {
-        console.log(this.form.value);
-        this.storyText = this.form.value.story;
-        this.resetForm();
-        this.upload();
-        console.log('No se ha seleccionado una imagen');
-      } else {
-        this.form.markAllAsTouched();
-      }
+    if (!this.isImageSelected()) {
+      console.log('No se ha seleccionado una imagen');
+      return false;
     }
+
+    if (!this.isFormValid()) {
+      this.form.markAllAsTouched();
+      return false;
+    }
+
+    this.processForm();
     return false;
+  }
+
+  private processForm(): void {
+    this.storyText = this.form.value.story;
+    this.resetForm();
+    this.upload();
   }
 
   guardarPosicion(): void {
@@ -452,25 +458,43 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
   }
 
   private upload() {
-    console.log('Subiendo imagen y texto a la base de datos');
-    const file_data = this.files[0];
-    const form_data = new FormData();
+    this.isUploading = true;
 
-    form_data.append('file', file_data);
-    form_data.append('upload_preset', 'otraDimensionProd');
-    form_data.append('cloud_name', environment.cloudName);
+    this._uploadService
+      .uploadImage(this.files[0], this.selectedBadges[0].texto)
+      .subscribe({
+        next: (response: any) => {
+          this.originalImageUrl = response.secure_url;
 
-    this._uploadService.uploadImage(form_data).subscribe({
-      next: (response: any) => {
-        console.log(response);
-      },
-      error: (error) => {
-        console.error(error);
-      },
-    });
+          // Generamos la URL con las transformaciones
+          this.transformedImageUrl = this._uploadService.getAiTransformedUrl(
+            response.public_id,
+            this.selectedBadges[0].texto
+          );
+
+          this.isUploading = false;
+        },
+        error: (error) => {
+          console.error(error);
+          this.isUploading = false;
+        },
+
+        complete: () => {
+          console.log('Completado');
+          console.log(this.transformedImageUrl);
+        },
+      });
   }
 
   private resetForm() {
     this.form.reset();
+  }
+
+  private isImageSelected(): boolean {
+    return this.files.length > 0 && this.ImagenSeleccionada;
+  }
+
+  private isFormValid(): boolean {
+    return this.form.valid;
   }
 }

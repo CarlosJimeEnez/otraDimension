@@ -1,13 +1,7 @@
 export const environment = {
   production: false,
-  apiUrl: 'https://api.cloudinary.com',
-  debugMode: true,
-  featureFlags: {
-    enableNewFeature: false,
+  cloudinary: {
+    cloudName: 'dl0ppyod0',
+    uploadPreset: 'otraDimensionProd',
   },
-  logging: {
-    level: 'debug',
-    remoteLogging: false,
-  },
-  cloudName: 'dl0ppyod0',
 };
