@@ -19,6 +19,9 @@ import { MapboxService } from '../../services/mapbox.service';
 
 import { UploadService } from '../../services/upload.service';
 import { environment } from '../../environment/environment.dev';
+import { FirebaseService } from '../../services/firebase-service.service';
+import { Item } from '../../interfaces/ImagePost';
+import { GeoPoint } from 'firebase/firestore';
 
 @Component({
   selector: 'app-nuevo-evento',
@@ -233,6 +236,7 @@ import { environment } from '../../environment/environment.dev';
                 placeholder="Escribe tu historia..."
               ></textarea>
 
+              <!-- Condicionales -->
               @if (form.get('story')?.invalid && form.get('story')?.dirty ||
               form.get('story')?.touched) {
               <small
@@ -252,6 +256,43 @@ import { environment } from '../../environment/environment.dev';
                 *ngIf="form.get('story')?.errors?.['maxlength']"
               >
                 La historia no puede tener más de 100 caracteres.
+              </small>
+              }
+
+              <!-- Nombre -->
+              <div class="mt-3 mb-3">
+                <app-typing-animation
+                  [fullText]="'Cómo llamarías esta historia?'"
+                ></app-typing-animation>
+              </div>
+
+              <textarea
+                id="message"
+                rows="4"
+                formControlName="nombre"
+                class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                placeholder="El edificio abandonado ... "
+              ></textarea>
+
+              @if (form.get('nombre')?.invalid && form.get('nombre')?.dirty ||
+              form.get('nombre')?.touched) {
+              <small
+                class="text-red-500"
+                *ngIf="form.get('nombre')?.errors?.['required']"
+              >
+                El nombre es requerido
+              </small>
+              <small
+                class="text-red-500"
+                *ngIf="form.get('nombre')?.errors?.['minlength']"
+              >
+                El nombre debe tener más de 1 caracter.
+              </small>
+              <small
+                class="text-red-500"
+                *ngIf="form.get('nombre')?.errors?.['maxlength']"
+              >
+                El nombre no puede tener más de 100 caracteres.
               </small>
               }
 
@@ -288,6 +329,7 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
   @ViewChild('textContainer') textContainer!: ElementRef;
 
   localizacioneSeleccionada: boolean = false;
+  localizacion: GeoPoint | null = null;
   ImagenSeleccionada: boolean = false;
   BadgesSeleccionado: boolean = false;
   selectedBadges: Badges[] = [];
@@ -299,11 +341,13 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
   isUploading: boolean = false;
   originalImageUrl: string = '';
   transformedImageUrl: string = '';
+  items: Item[] = [];
 
   constructor(
     private fb: FormBuilder,
     private _mapService: MapboxService,
-    private _uploadService: UploadService
+    private _uploadService: UploadService,
+    private _firebaseService: FirebaseService
   ) {
     this.form = this.fb.group({
       story: [
@@ -311,6 +355,14 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
         [
           Validators.required,
           Validators.minLength(10),
+          Validators.maxLength(500),
+        ],
+      ],
+      nombre: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(1),
           Validators.maxLength(100),
         ],
       ],
@@ -437,28 +489,27 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
       console.log('No se ha seleccionado una imagen');
       return false;
     }
-
     if (!this.isFormValid()) {
       this.form.markAllAsTouched();
       return false;
     }
-
     this.processForm();
     return false;
   }
 
-  private processForm(): void {
-    this.storyText = this.form.value.story;
-    this.resetForm();
-    this.upload();
-  }
-
   guardarPosicion(): void {
+    this.localizacion = new GeoPoint(this.center[1], this.center[0]);
+
     this.localizacioneSeleccionada = true;
   }
 
   private upload() {
     this.isUploading = true;
+    const transformation = this.selectedBadges[0].texto;
+    const localizacion = this.localizacion;
+    const story = this.form.get('story')?.value;
+    const nombre = this.form.get('nombre')?.value;
+    console.log(`Story: ${story}, Nombre: ${nombre}`);
 
     this._uploadService
       .uploadImage(this.files[0], this.selectedBadges[0].texto)
@@ -469,11 +520,12 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
           // Generamos la URL con las transformaciones
           this.transformedImageUrl = this._uploadService.getAiTransformedUrl(
             response.public_id,
-            this.selectedBadges[0].texto
+            transformation
           );
 
           this.isUploading = false;
         },
+
         error: (error) => {
           console.error(error);
           this.isUploading = false;
@@ -482,6 +534,15 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
         complete: () => {
           console.log('Completado');
           console.log(this.transformedImageUrl);
+
+          this._firebaseService.addItem(
+            nombre,
+            transformation,
+            localizacion,
+            story,
+            this.originalImageUrl,
+            this.transformedImageUrl
+          );
         },
       });
   }
@@ -496,5 +557,11 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
 
   private isFormValid(): boolean {
     return this.form.valid;
+  }
+
+  private processForm(): void {
+    this.storyText = this.form.value.story;
+    this.resetForm();
+    this.upload();
   }
 }
