@@ -7,11 +7,13 @@ import {
   OnDestroy,
 } from '@angular/core';
 import * as mapboxgl from 'mapbox-gl';
-import { Eventos } from '../../interfaces/Eventos';
 import { EventosDetallesComponent } from '../eventos-detalles/eventos-detalles.component';
 import { FooterComponent } from '../footer/footer.component';
 import { NuevoEventoComponent } from '../nuevo-evento/nuevo-evento.component';
 import { MapboxService } from '../../services/mapbox.service';
+import { Router } from '@angular/router';
+import { Item } from '../../interfaces/ImagePost';
+import { FirebaseService } from '../../services/firebase-service.service';
 
 @Component({
   selector: 'app-map-home',
@@ -47,58 +49,75 @@ import { MapboxService } from '../../services/mapbox.service';
 })
 export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef;
-  map: mapboxgl.Map | undefined;
+  map: mapboxgl.Map | null = null;
   center: [number, number] = [-98.18318658713179, 19.047718948679815];
   popup: mapboxgl.Popup | undefined;
-  eventoSeleccionado: Eventos | undefined;
+  eventoSeleccionado: Item | undefined;
   mostrarDashboard: boolean = false;
   activePopup: mapboxgl.Popup | null = null;
 
-  eventos: Eventos[] = [
-    {
-      id: 1,
-      nombre: 'Evento 1',
-      coordenadas: [-98.1831865, 19.04771894],
-      descripcion: 'Descripcion 1',
-    },
-    {
-      id: 2,
-      nombre: 'Evento 2',
-      coordenadas: [-98.183, 19.04],
-      descripcion: 'Descripcion 2',
-    },
-  ];
+  items: Item[] = [];
 
-  constructor(private _mapboxService: MapboxService) {}
+  constructor(
+    private _firebaseService: FirebaseService,
+    private _mapboxService: MapboxService,
+    private _route: Router
+  ) {}
+
   ngOnDestroy(): void {
     this._mapboxService.destroyMap();
   }
 
-  ngOnInit() {}
-  ngAfterViewInit(): void {
-    // this.cargarMapa();
-    this.map = this._mapboxService.initializeMap('map', {
-      center: this.center, // Personaliza las opciones según necesites
+  ngOnInit() {
+    this._firebaseService.getItems().subscribe({
+      next: (items) => {
+        this.items = items;
+        this.cargarEventos();
+      },
+      error: (error) => {
+        console.log(error);
+      },
     });
-    console.log(this.map);
-    this.cargarEventos();
+  }
+
+  ngAfterViewInit(): void {
+    this.map = this._mapboxService.getMap();
+    if (!this.map) {
+      this.map = this._mapboxService.initializeMap('map', {
+        center: this.center, // Personaliza las opciones según necesites
+      });
+    } else {
+      console.log('Mapa encontrado');
+      const mapContainerElement = this.mapContainer.nativeElement;
+      const mapContainer = this.map?.getContainer();
+      if (mapContainer) {
+        mapContainer.style.height = '100vh';
+        mapContainerElement.appendChild(mapContainer);
+      }
+      this.map.resize();
+      this.reiniciarMap(this.map);
+      this.map?.setZoom(14);
+    }
   }
 
   cargarEventos(): void {
-    this.eventos.forEach((evento) => {
+    this.items.forEach((evento) => {
       const el = document.createElement('div');
+      const Lng = evento.Center?.longitude;
+      const Lat = evento.Center?.latitude;
+      const center: [number, number] = [Lng!, Lat!];
+      console.log(center);
+
       el.className = 'marker';
       el.style.backgroundImage = 'url(animaciones/inimaFrame1.png)';
       el.style.width = '50px';
       el.style.height = '50px';
       el.style.backgroundSize = '100%';
 
-      const marker = new mapboxgl.Marker(el)
-        .setLngLat(evento.coordenadas)
-        .addTo(this.map!);
+      const marker = new mapboxgl.Marker(el).setLngLat(center).addTo(this.map!);
 
       const marker1 = new mapboxgl.Marker({ color: 'var(--primary)' })
-        .setLngLat(evento.coordenadas)
+        .setLngLat(center)
         .addTo(this.map!);
 
       const popup = new mapboxgl.Popup({
@@ -106,7 +125,7 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
         closeOnClick: false,
       }).setHTML(
         `<div class="flex items-center justify-center">
-          <p class="font-extrabold select-none  p-3">${evento.nombre}</p>
+          <p class="font-extrabold select-none  p-3">${evento.Nombre}</p>
           <button id="visitButton-${evento.id}" type="button" class="mt-1 text-text bg-gradient-to-br from-primaryv3 to-accentv2 hover:bg-gradient-to-bl focus:outline-none font-semibold rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Visitar... </button>
           </div>`
       );
@@ -114,7 +133,7 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
       marker1.setPopup(popup);
       marker1.getElement().addEventListener('click', () => {
         this.map!.flyTo({
-          center: evento.coordenadas,
+          center: center,
           zoom: 14,
           speed: 0.5,
         });
@@ -156,7 +175,7 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  mostrarEvento(evento: Eventos): any {
+  mostrarEvento(evento: Item): any {
     this.eventoSeleccionado = evento;
   }
 
@@ -164,7 +183,35 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.eventoSeleccionado = undefined;
   }
 
+  cerrarNuevoComponente(): any {}
+
   mostrarCreateDashboard(): void {
-    this.mostrarDashboard = true;
+    this._route.navigate(['/nuevo-evento'], {
+      queryParams: { center: this.center },
+    });
+  }
+
+  private reiniciarMap(mapa: mapboxgl.Map): void {
+    // Guardar el estado actual del mapa si lo necesitas
+    const center = mapa.getCenter();
+    const zoom = mapa.getZoom();
+    const bearing = mapa.getBearing();
+    const pitch = mapa.getPitch();
+
+    // Remover todos los marcadores
+    const markers = document.getElementsByClassName('mapboxgl-marker');
+    while (markers.length > 0) {
+      markers[0].remove();
+    }
+
+    // Remover todos los popups
+    const popups = document.getElementsByClassName('mapboxgl-popup');
+    while (popups.length > 0) {
+      popups[0].remove();
+    }
+    mapa.setCenter(center);
+    mapa.setZoom(zoom);
+    mapa.setBearing(bearing);
+    mapa.setPitch(pitch);
   }
 }

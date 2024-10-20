@@ -1,11 +1,7 @@
-<div #mapContainer id="map" class="w-full h-full relative top-0 left-0"></div>
+<div #mapContainer id="map" class="w-full h-screen relative top-0 left-0"></div>
 
 @if (eventoSeleccionado) {
 <app-eventos-detalles [eventoSeleccionado]="eventoSeleccionado" (cerrarEvento)="cerrarEvento()"></app-eventos-detalles>
 }
 
 <app-footer (mostrarEvento)="mostrarCreateDashboard()"></app-footer>
-
-@if (mostrarDashboard) {
-<app-nuevo-evento [center]="center"></app-nuevo-evento>
-}

@@ -6,6 +6,7 @@ import { CloudinaryModule } from '@cloudinary/ng';
 import { Cloudinary, CloudinaryImage } from '@cloudinary/url-gen';
 import { CommonModule } from '@angular/common';
 import { fill } from '@cloudinary/url-gen/actions/resize';
+import { Item } from '../../interfaces/ImagePost';
 
 @Component({
   selector: 'app-eventos-detalles',
@@ -25,16 +26,16 @@ import { fill } from '@cloudinary/url-gen/actions/resize';
       </button>
 
       <h2 class="text-text">Detalles del evento</h2>
-      <p class="text-text">Nombre: {{ eventoSeleccionado?.nombre }}</p>
+      <p class="text-text">Nombre: {{ eventoSeleccionado?.Nombre }}</p>
       <p class="text-text">
-        Descripción: {{ eventoSeleccionado?.descripcion }}
+        Descripción: {{ eventoSeleccionado?.Descripcion }}
       </p>
       <advanced-image [cldImg]="img"></advanced-image>
     </div>
   `,
 })
 export class EventosDetallesComponent {
-  @Input() eventoSeleccionado: Eventos | null = null;
+  @Input() eventoSeleccionado: Item | null = null;
   @Output() cerrarEvento = new EventEmitter<any>();
   img!: CloudinaryImage;
 

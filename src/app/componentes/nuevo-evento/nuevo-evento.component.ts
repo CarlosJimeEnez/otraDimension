@@ -3,8 +3,10 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
+  EventEmitter,
   Input,
   OnInit,
+  Output,
   ViewChild,
 } from '@angular/core';
 import { center } from '@cloudinary/url-gen/qualifiers/textAlignment';
@@ -22,6 +24,7 @@ import { environment } from '../../environment/environment.dev';
 import { FirebaseService } from '../../services/firebase-service.service';
 import { Item } from '../../interfaces/ImagePost';
 import { GeoPoint } from 'firebase/firestore';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-nuevo-evento',
@@ -62,6 +65,14 @@ import { GeoPoint } from 'firebase/firestore';
     <div
       class="fixed text-text space-y-4 top-16 w-8/12 max-h-[75vh] custom-scrollbar overflow-y-auto left-1/2 transform -translate-x-1/2  p-6 z-10 bg-white border border-gray-200 rounded-lg shadow dark:bg-background dark:border-gray-700"
     >
+      <button>
+        <div
+          (click)="cerrar()"
+          class="absolute inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-text bg-red-500 border-2 border-white rounded-full -top-2 -end-2 dark:border-gray-900"
+        >
+          X
+        </div>
+      </button>
       <h2 class="text-2xl font-semibold text-text dark:text-text">
         Nuevo evento
       </h2>
@@ -79,6 +90,7 @@ import { GeoPoint } from 'firebase/firestore';
       </div>
 
       <div id="map" class="map-container w-70 h-[300px]" #mapContainer></div>
+
       <div class="flex justify-start items-center">
         <button
           type="button"
@@ -323,7 +335,7 @@ import { GeoPoint } from 'firebase/firestore';
   `,
 })
 export class NuevoEventoComponent implements AfterViewInit, OnInit {
-  @Input() center!: [number, number];
+  center: [number, number];
   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef;
   // Access the span element
   @ViewChild('textContainer') textContainer!: ElementRef;
@@ -347,7 +359,9 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
     private fb: FormBuilder,
     private _mapService: MapboxService,
     private _uploadService: UploadService,
-    private _firebaseService: FirebaseService
+    private _firebaseService: FirebaseService,
+    private _route: ActivatedRoute,
+    private _router: Router
   ) {
     this.form = this.fb.group({
       story: [
@@ -367,6 +381,8 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
         ],
       ],
     });
+
+    this.center = this._route.snapshot.queryParams['center'];
   }
 
   ngOnInit(): void {
@@ -381,10 +397,8 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
     if (this.map) {
       const mapContainerElement = this.mapContainer.nativeElement;
       mapContainerElement.appendChild(this.map?.getContainer());
-      console.log(this.map);
       this.map?.resize();
       this.reiniciarMap(this.map);
-
       const marker = this.addMarker();
       // Actualizar la posición del marker cuando el mapa se mueve
       this.map.on('move', () => {
@@ -395,6 +409,19 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
       this.map?.setZoom(14);
     } else {
       console.log('No se ha podido cargar el mapa');
+      this.map = this._mapService.initializeMap('map', {
+        center: this.center, // Personaliza las opciones según necesites
+      });
+      this.map?.resize();
+      this.reiniciarMap(this.map);
+      const marker = this.addMarker();
+      // Actualizar la posición del marker cuando el mapa se mueve
+      this.map.on('move', () => {
+        const center = this.map!.getCenter();
+        this.center = [center.lng, center.lat];
+        marker.setLngLat(this.center);
+      });
+      this.map?.setZoom(14);
     }
   }
 
@@ -411,6 +438,7 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
 
   cerrar() {
     console.log('Evento emitido');
+    this._router.navigate(['']);
   }
 
   reiniciarMap(mapa: mapboxgl.Map): void {
