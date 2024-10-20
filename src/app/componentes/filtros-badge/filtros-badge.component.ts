@@ -21,11 +21,13 @@ import { Component, Input } from '@angular/core';
       </span>
     </button>
   `,
-  styles: [`
-    :host {
-      display: inline-block;
-    }
-  `]
+  styles: [
+    `
+      :host {
+        display: inline-block;
+      }
+    `,
+  ],
 })
 export class FiltrosBadgeComponent {
   @Input() texto: string = '';
@@ -33,23 +35,22 @@ export class FiltrosBadgeComponent {
   @Input() hoverColor: string = 'var(--accent-v2)';
   @Input() selectedBorderColor: string = 'var(--secondary)';
   @Input() borderColor: string = 'var(--background)';
-  @Input() borderWidth: string = '2px'; 
+  @Input() borderWidth: string = '2px';
   @Input() selected: boolean = false;
+  @Input() tipo: string = 'background';
 
   isHovered: boolean = false;
 
   getBaseClasses(): string {
-    return [
-      'bg-blue-100 dark:bg-accentv3',
-      'text-text',
-      'me-1'
-    ].join(' ');
+    return ['bg-blue-100 dark:bg-accentv3', 'text-text', 'me-1'].join(' ');
   }
 
   getBadgeStyles(): Record<string, string> {
     return {
       backgroundColor: this.isHovered ? this.hoverColor : this.color,
-      border: `${this.borderWidth} solid ${this.selected ? this.selectedBorderColor : this.borderColor}`,
+      border: `${this.borderWidth} solid ${
+        this.selected ? this.selectedBorderColor : this.borderColor
+      }`,
       // Opcional: agregar un pequeño padding interno para compensar el borde
       // padding: this.selected ? 'calc(0.25rem - 2px) calc(1rem - 2px)' : '0.25rem 1rem'
     };

@@ -25,6 +25,8 @@ import { FirebaseService } from '../../services/firebase-service.service';
 import { Item } from '../../interfaces/ImagePost';
 import { GeoPoint } from 'firebase/firestore';
 import { ActivatedRoute, Router } from '@angular/router';
+import { text } from '@cloudinary/url-gen/qualifiers/source';
+import { blackwhite } from '@cloudinary/url-gen/actions/effect';
 
 @Component({
   selector: 'app-nuevo-evento',
@@ -68,7 +70,7 @@ import { ActivatedRoute, Router } from '@angular/router';
       <button>
         <div
           (click)="cerrar()"
-          class="absolute inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-text bg-red-500 border-2 border-white rounded-full -top-2 -end-2 dark:border-gray-900"
+          class="absolute inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-text bg-red-500 border-2 border-white rounded-full top-1 end-1  dark:border-gray-900"
         >
           X
         </div>
@@ -160,21 +162,44 @@ import { ActivatedRoute, Router } from '@angular/router';
         </div>
 
         <!-- Efectos de imagen -->
+        <small class="mt-4">Efectos de imagen</small>
         <div
-          class="flex custom-scrollbar justify-start items-center overflow-x-auto mt-3"
+          class="flex custom-scrollbar justify-start items-center overflow-x-auto mt-2"
         >
           <app-filtros-badge
-            [texto]="'Oscurecer'"
-            [selected]="isSelected('Oscurecer')"
+            [texto]="'Saturacion'"
+            [selected]="isSelected('Saturacion')"
             (click)="
-              toggleBadge('Oscurecer', 'var(--accent-v2)', 'var(--accent-v1)')
+              toggleBadge(
+                'Saturacion',
+                'var(--accent-v2)',
+                'var(--accent-v1)',
+                'efecto'
+              )
             "
           ></app-filtros-badge>
           <app-filtros-badge
-            [texto]="'Sombras'"
-            [selected]="isSelected('Sombras')"
+            [texto]="'Escala de grises'"
+            [selected]="isSelected('Escala de grises')"
             (click)="
-              toggleBadge('Sombras', 'var(--accent-v2)', 'var(--accent-v1)')
+              toggleBadge(
+                'Escala de grises',
+                'var(--accent-v2)',
+                'var(--accent-v1)',
+                'efecto'
+              )
+            "
+          ></app-filtros-badge>
+          <app-filtros-badge
+            [texto]="'Contraste'"
+            [selected]="isSelected('Contraste')"
+            (click)="
+              toggleBadge(
+                'Contraste',
+                'var(--accent-v2)',
+                'var(--accent-v1)',
+                'efecto'
+              )
             "
           ></app-filtros-badge>
           <app-filtros-badge
@@ -184,15 +209,32 @@ import { ActivatedRoute, Router } from '@angular/router';
               toggleBadge(
                 'Blanco y negro',
                 'var(--accent-v2)',
-                'var(--accent-v1)'
+                'var(--accent-v1)',
+                'efecto'
+              )
+            "
+          ></app-filtros-badge>
+
+          <app-filtros-badge
+            [texto]="'Imagen Negada'"
+            [selected]="isSelected('Imagen Negada')"
+            (click)="
+              toggleBadge(
+                'Imagen Negada',
+                'var(--accent-v2)',
+                'var(--accent-v1)',
+                'efecto'
               )
             "
           ></app-filtros-badge>
         </div>
 
         <!-- Cambios bg-background -->
+        <small class="mt-4"
+          >Generar background. (Solo se puede seleccionar uno)</small
+        >
         <div
-          class="flex custom-scrollbar justify-start items-center overflow-x-auto mt-3"
+          class="flex custom-scrollbar justify-start items-center overflow-x-auto mt-2"
         >
           <app-filtros-badge
             texto="Niebla terrorífica"
@@ -204,7 +246,8 @@ import { ActivatedRoute, Router } from '@angular/router';
               toggleBadge(
                 'Niebla terrorífica',
                 'var(--primary-v2)',
-                'var(--primary-v1)'
+                'var(--primary-v1)',
+                'background'
               )
             "
           ></app-filtros-badge>
@@ -215,7 +258,12 @@ import { ActivatedRoute, Router } from '@angular/router';
             selectedBorderColor="var(--text)"
             [selected]="isSelected('Fantasmas')"
             (click)="
-              toggleBadge('Fantasmas', 'var(--primary-v2)', 'var(--primary-v1)')
+              toggleBadge(
+                'Fantasmas',
+                'var(--primary-v2)',
+                'var(--primary-v1)',
+                'background'
+              )
             "
           ></app-filtros-badge>
           <app-filtros-badge
@@ -228,7 +276,8 @@ import { ActivatedRoute, Router } from '@angular/router';
               toggleBadge(
                 'Murcielagos',
                 'var(--primary-v2)',
-                'var(--primary-v1)'
+                'var(--primary-v1)',
+                'background'
               )
             "
           ></app-filtros-badge>
@@ -346,7 +395,6 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
   BadgesSeleccionado: boolean = false;
   selectedBadges: Badges[] = [];
   form: FormGroup;
-  storyText: string = '';
   map: mapboxgl.Map | null = null;
   files: File[] = [];
   processedImageUrl: any | null = null;
@@ -354,6 +402,8 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
   originalImageUrl: string = '';
   transformedImageUrl: string = '';
   items: Item[] = [];
+  storyText: string = '';
+  nombreText: string = '';
 
   constructor(
     private fb: FormBuilder,
@@ -388,6 +438,9 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
   ngOnInit(): void {
     this.form.get('story')?.valueChanges.subscribe((value) => {
       this.storyText = value;
+    });
+    this.form.get('nombre')?.valueChanges.subscribe((value) => {
+      this.nombreText = value;
     });
   }
 
@@ -478,12 +531,17 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
     return this.center;
   }
 
-  addBadge(texto: string, color: string, hoverColor: string): void {
+  addBadge(
+    texto: string,
+    color: string,
+    hoverColor: string,
+    tipo: string
+  ): void {
     const exists = this.selectedBadges.some((badge) => badge.texto === texto);
     if (!exists) {
       this.selectedBadges = [
         ...this.selectedBadges,
-        { texto, color, hoverColor },
+        { texto, color, hoverColor, tipo },
       ];
       console.log(this.selectedBadges);
     }
@@ -495,18 +553,45 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
     );
   }
 
+  removeBadgeTipo(tipo: string): void {
+    this.selectedBadges = this.selectedBadges.filter(
+      (badge) => badge.tipo !== tipo
+    );
+  }
+
   isSelected(texto: string): boolean {
     return this.selectedBadges.some((badge) => badge.texto === texto);
   }
 
-  toggleBadge(texto: string, color: string, hoverColor: string): void {
+  toggleBadge(
+    texto: string,
+    color: string,
+    hoverColor: string,
+    tipo: string
+  ): void {
     const exists = this.selectedBadges.some((badge) => badge.texto === texto);
+    const existsBackground = this.selectedBadges.some(
+      (badge) => badge.tipo === tipo
+    );
     this.BadgesSeleccionado = true;
 
     if (exists) {
       this.removeBadge(texto);
+    }
+
+    if (tipo == 'background') {
+      if (!exists && !existsBackground) {
+        this.addBadge(texto, color, hoverColor, tipo);
+      } else {
+        this.removeBadgeTipo(tipo);
+        this.addBadge(texto, color, hoverColor, tipo);
+      }
     } else {
-      this.addBadge(texto, color, hoverColor);
+      if (exists) {
+        this.removeBadge(texto);
+      } else {
+        this.addBadge(texto, color, hoverColor, tipo);
+      }
     }
   }
 
@@ -531,46 +616,48 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
 
   private upload() {
     this.isUploading = true;
-    const transformation = this.selectedBadges[0].texto;
+    const badgeBackground = this.selectedBadges.filter((badge) => {
+      badge.tipo === 'background';
+    });
+    const backgroundPrompt = badgeBackground[0].texto;
+    console.log(`Background promt: ${backgroundPrompt}`);
+
     const localizacion = this.localizacion;
     const story = this.form.get('story')?.value;
     const nombre = this.form.get('nombre')?.value;
     console.log(`Story: ${story}, Nombre: ${nombre}`);
 
-    this._uploadService
-      .uploadImage(this.files[0], this.selectedBadges[0].texto)
-      .subscribe({
-        next: (response: any) => {
-          this.originalImageUrl = response.secure_url;
+    this._uploadService.uploadImage(this.files[0]).subscribe({
+      next: (response: any) => {
+        this.originalImageUrl = response.secure_url;
+        // Generamos la URL con las transformaciones
+        this.transformedImageUrl = this._uploadService.getAiTransformedUrl(
+          response.public_id,
+          backgroundPrompt,
+          {
+            blackAndWhite: this.isSelected('Blanco y Negro'),
+            negate: this.isSelected('Imagen negada'),
+            saturation: this.isSelected('Saturacion'),
+            graySacale: this.isSelected('Escala de grises'),
+            contrast: this.isSelected('Contraste'),
+          }
+        );
 
-          // Generamos la URL con las transformaciones
-          this.transformedImageUrl = this._uploadService.getAiTransformedUrl(
-            response.public_id,
-            transformation
-          );
+        this.isUploading = false;
+      },
 
-          this.isUploading = false;
-        },
+      error: (error) => {
+        console.error(error);
+        this.isUploading = false;
+      },
 
-        error: (error) => {
-          console.error(error);
-          this.isUploading = false;
-        },
-
-        complete: () => {
-          console.log('Completado');
-          console.log(this.transformedImageUrl);
-
-          this._firebaseService.addItem(
-            nombre,
-            transformation,
-            localizacion,
-            story,
-            this.originalImageUrl,
-            this.transformedImageUrl
-          );
-        },
-      });
+      complete: () => {
+        console.log('Completado');
+        console.log(this.transformedImageUrl);
+        this.saveFirebase(backgroundPrompt, localizacion!);
+        this.cerrar();
+      },
+    });
   }
 
   private resetForm() {
@@ -586,8 +673,18 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
   }
 
   private processForm(): void {
-    this.storyText = this.form.value.story;
     this.resetForm();
     this.upload();
+  }
+
+  private saveFirebase(backgroundPrompt: string, localizacion: GeoPoint) {
+    this._firebaseService.addItem(
+      this.nombreText,
+      backgroundPrompt,
+      localizacion,
+      this.storyText,
+      this.originalImageUrl,
+      this.transformedImageUrl
+    );
   }
 }

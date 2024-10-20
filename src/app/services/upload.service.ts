@@ -14,7 +14,7 @@ export class UploadService {
   uploadUrl: string = `https://api.cloudinary.com/v1_1/${environment.cloudinary.cloudName}/image/upload`;
   constructor(private http: HttpClient) {}
 
-  uploadImage(file: File, backgroundPrompt: string): Observable<any> {
+  uploadImage(file: File): Observable<any> {
     const form_data = new FormData();
 
     form_data.append('file', file);
@@ -28,9 +28,46 @@ export class UploadService {
   }
 
   // Método para generar la URL con transformaciones AI
-  getAiTransformedUrl(publicId: string, backgroundPrompt: string): string {
+  getAiTransformedUrl(
+    publicId: string,
+    backgroundPrompt: string,
+    options: {
+      blackAndWhite?: boolean;
+      negate?: boolean;
+      saturation?: boolean;
+      graySacale?: boolean;
+      contrast?: boolean;
+    } = {}
+  ): string {
     const encodedPrompt = encodeURIComponent(backgroundPrompt);
-    const transformation = `e_gen_background_replace:prompt_${encodedPrompt}`;
-    return `https://res.cloudinary.com/${environment.cloudinary.cloudName}/image/upload/${transformation}/${publicId}`;
+    const transformations = [
+      `e_gen_background_replace:prompt_${encodedPrompt}`,
+    ];
+
+    if (options.graySacale) {
+      transformations.push('e_grayscale');
+    }
+
+    if (options.blackAndWhite) {
+      transformations.push('e_blackwhite');
+    }
+
+    if (options.negate) {
+      transformations.push('e_negate');
+    }
+
+    if (options.contrast) {
+      transformations.push('e_contrast');
+    }
+
+    if (options.saturation) {
+      transformations.push('e_saturation');
+    }
+
+    transformations.push('w_300,h_300,c_fill');
+
+    const transformationString = transformations.join('/');
+
+    return `https://res.cloudinary.com/${environment.cloudinary.cloudName}/image/upload/${transformationString}/${publicId}`;
   }
 }
