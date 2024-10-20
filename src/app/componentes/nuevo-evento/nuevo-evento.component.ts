@@ -407,7 +407,6 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
       });
       this.map?.setZoom(14);
     } else {
-      console.log('No se ha podido cargar el mapa');
       this.map = this._mapService.initializeMap('map', {
         center: this.center, // Personaliza las opciones según necesites
       });
