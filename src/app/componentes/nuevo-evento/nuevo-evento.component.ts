@@ -393,7 +393,6 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
 
   ngAfterViewInit(): void {
     this.map = this._mapService.getMap();
-    console.log(this.map);
     if (this.map) {
       const mapContainerElement = this.mapContainer.nativeElement;
       mapContainerElement.appendChild(this.map?.getContainer());
