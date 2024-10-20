@@ -134,7 +134,7 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
       marker1.getElement().addEventListener('click', () => {
         this.map!.flyTo({
           center: center,
-          zoom: 14,
+          zoom: 17,
           speed: 0.5,
         });
 
