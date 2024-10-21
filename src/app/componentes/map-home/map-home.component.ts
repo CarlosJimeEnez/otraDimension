@@ -11,7 +11,7 @@ import { EventosDetallesComponent } from '../eventos-detalles/eventos-detalles.c
 import { FooterComponent } from '../footer/footer.component';
 import { NuevoEventoComponent } from '../nuevo-evento/nuevo-evento.component';
 import { MapboxService } from '../../services/mapbox.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Item } from '../../interfaces/ImagePost';
 import { FirebaseService } from '../../services/firebase-service.service';
 
@@ -55,14 +55,19 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
   eventoSeleccionado: Item | undefined;
   mostrarDashboard: boolean = false;
   activePopup: mapboxgl.Popup | null = null;
+  creandoImagen: boolean = false;  
 
   items: Item[] = [];
 
   constructor(
     private _firebaseService: FirebaseService,
     private _mapboxService: MapboxService,
-    private _route: Router
-  ) {}
+    private _route: Router,
+    private _router: ActivatedRoute,
+  ) {
+
+    this.creandoImagen = this._router.snapshot.queryParams['creandoImagen']; 
+  }
 
   ngOnDestroy(): void {
     this._mapboxService.destroyMap();

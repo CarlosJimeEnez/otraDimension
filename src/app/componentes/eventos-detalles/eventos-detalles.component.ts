@@ -15,12 +15,12 @@ import { FiltrosBadgeComponent } from '../filtros-badge/filtros-badge.component'
   imports: [CommonModule, CloudinaryModule, FiltrosBadgeComponent],
   template: `
     <div
-      class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-background rounded-lg shadow-lg p-3"
+      class="fixed text-text space-y-4 top-16 w-8/12 max-h-[75vh] custom-scrollbar overflow-y-auto left-1/2 transform -translate-x-1/2  p-6 z-10 bg-white border border-gray-200 rounded-lg shadow dark:bg-background dark:border-gray-700"
     >
       <button>
         <div
           (click)="cerrar()"
-          class="absolute inline-flex items-center w-6 h-6 justify-center text-xs font-bold text-text bg-red-500 border-2 border-white rounded-full -top-2 -end-2 dark:border-gray-900"
+          class="absolute inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-text bg-red-500 border-2 border-white rounded-full top-1 end-1  dark:border-gray-900"
         >
           X
         </div>

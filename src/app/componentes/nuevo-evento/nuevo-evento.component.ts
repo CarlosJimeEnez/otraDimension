@@ -487,7 +487,9 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
   }
 
   cerrar() {
-    this._router.navigate(['']);
+    this._router.navigate([''], {
+      queryParams: { creandoImagen: true },
+    });
   }
 
   reiniciarMap(mapa: mapboxgl.Map): void {
