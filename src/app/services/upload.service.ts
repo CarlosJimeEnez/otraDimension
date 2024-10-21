@@ -49,6 +49,7 @@ export class UploadService {
     }
 
     if (options.blackAndWhite) {
+      console.log('e_blackwhite');
       transformations.push('e_blackwhite');
     }
 
@@ -61,6 +62,7 @@ export class UploadService {
     }
 
     if (options.saturation) {
+      console.log('e_saturation');
       transformations.push('e_saturation');
     }
 

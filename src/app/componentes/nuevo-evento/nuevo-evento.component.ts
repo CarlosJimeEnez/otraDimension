@@ -404,6 +404,7 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
   items: Item[] = [];
   storyText: string = '';
   nombreText: string = '';
+  backgroundPrompt: string = '';
 
   constructor(
     private fb: FormBuilder,
@@ -477,18 +478,15 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
   }
 
   onSelect(event: any): void {
-    console.log(event);
     this.files.push(...event.addedFiles);
     this.ImagenSeleccionada = true;
   }
 
   onRemove(event: any): void {
-    console.log(event);
     this.files.splice(this.files.indexOf(event), 1);
   }
 
   cerrar() {
-    console.log('Evento emitido');
     this._router.navigate(['']);
   }
 
@@ -597,7 +595,6 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
 
   onSubmit(): boolean {
     if (!this.isImageSelected()) {
-      console.log('No se ha seleccionado una imagen');
       return false;
     }
     if (!this.isFormValid()) {
@@ -616,16 +613,30 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
 
   private upload() {
     this.isUploading = true;
-    const badgeBackground = this.selectedBadges.filter((badge) => {
-      badge.tipo === 'background';
-    });
-    const backgroundPrompt = badgeBackground[0].texto;
-    console.log(`Background promt: ${backgroundPrompt}`);
-
     const localizacion = this.localizacion;
-    const story = this.form.get('story')?.value;
-    const nombre = this.form.get('nombre')?.value;
-    console.log(`Story: ${story}, Nombre: ${nombre}`);
+    if (!localizacion) {
+      console.error('Localización es requerida');
+      return;
+    }
+
+    this.selectedBadges.filter((badge) => {
+      if (badge.tipo == 'background') {
+        this.backgroundPrompt = badge.texto;
+      } else {
+        console.log(badge);
+      }
+    });
+
+    console.log(this.nombreText);
+    console.log(this.storyText);
+    const nombre = this.nombreText;
+    const story = this.storyText;
+
+    // Luego tu validación
+    if (!this.storyText || !this.nombreText) {
+      console.error('Campos requeridos');
+      return;
+    }
 
     this._uploadService.uploadImage(this.files[0]).subscribe({
       next: (response: any) => {
@@ -633,9 +644,9 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
         // Generamos la URL con las transformaciones
         this.transformedImageUrl = this._uploadService.getAiTransformedUrl(
           response.public_id,
-          backgroundPrompt,
+          this.backgroundPrompt,
           {
-            blackAndWhite: this.isSelected('Blanco y Negro'),
+            blackAndWhite: this.isSelected('Blanco y negro'),
             negate: this.isSelected('Imagen negada'),
             saturation: this.isSelected('Saturacion'),
             graySacale: this.isSelected('Escala de grises'),
@@ -654,8 +665,7 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
       complete: () => {
         console.log('Completado');
         console.log(this.transformedImageUrl);
-        this.saveFirebase(backgroundPrompt, localizacion!);
-        this.cerrar();
+        this.saveFirebase(nombre, story, this.backgroundPrompt, localizacion!);
       },
     });
   }
@@ -673,16 +683,36 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
   }
 
   private processForm(): void {
-    this.resetForm();
     this.upload();
+    this.resetForm();
+    this.cerrar();
   }
 
-  private saveFirebase(backgroundPrompt: string, localizacion: GeoPoint) {
+  private saveFirebase(
+    nombre: string,
+    story: string,
+    backgroundPrompt: string,
+    localizacion: GeoPoint
+  ) {
+    console.log('Guardando en Firebase:', {
+      nombre: nombre,
+      story: story,
+      background: backgroundPrompt,
+      localizacion,
+      originalUrl: this.originalImageUrl,
+      transformedUrl: this.transformedImageUrl,
+    });
+
+    // Validación final antes de guardar
+    if (!nombre?.trim() || !story?.trim()) {
+      throw new Error('Datos inválidos para guardar en Firebase');
+    }
+
     this._firebaseService.addItem(
-      this.nombreText,
+      nombre,
       backgroundPrompt,
       localizacion,
-      this.storyText,
+      story,
       this.originalImageUrl,
       this.transformedImageUrl
     );
