@@ -56,6 +56,7 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
   mostrarDashboard: boolean = false;
   activePopup: mapboxgl.Popup | null = null;
   creandoImagen: boolean = false;  
+  imagenCreada: boolean = false; 
 
   items: Item[] = [];
 
@@ -65,8 +66,10 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
     private _route: Router,
     private _router: ActivatedRoute,
   ) {
-
-    this.creandoImagen = this._router.snapshot.queryParams['creandoImagen']; 
+    
+    this.creandoImagen = this._router.snapshot.queryParams['creandoImagen'] === false; 
+    console.log(this.creandoImagen)
+    
   }
 
   ngOnDestroy(): void {
@@ -83,6 +86,7 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
         console.log(error);
       },
     });
+
   }
 
   ngAfterViewInit(): void {
