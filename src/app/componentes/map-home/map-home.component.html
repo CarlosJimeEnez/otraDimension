@@ -24,13 +24,22 @@
         <path d="M7.70832 18.5L15.4167 26.2083L30.8333 10.7916" stroke="#5BA536" stroke-width="5" stroke-linecap="round"
             stroke-linejoin="round" />
     </svg>
-
     <div class="">
         Se creó el evento
     </div>
 </div>
-} @else {
-
+} @else if (errorImagen) {
+<div class="absolute flex items-center space-x-3 text-text top-16 left-8 w-8/12 max-h-[75vh] ">
+    <svg width="37" height="37" viewBox="0 0 37 37" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M27.75 9.25L9.25 27.75" stroke="#D71919" stroke-width="2.07089" stroke-linecap="round"
+            stroke-linejoin="round" />
+        <path d="M9.25 9.25L27.75 27.75" stroke="#D71919" stroke-width="2.07089" stroke-linecap="round"
+            stroke-linejoin="round" />
+    </svg>
+    <div class="">
+        Error al crear evento
+    </div>
+</div>
 }
 
 

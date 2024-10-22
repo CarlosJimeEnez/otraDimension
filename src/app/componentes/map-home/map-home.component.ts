@@ -61,7 +61,7 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
   transformedUrl: string = '';
   creandoImagen: boolean = false;
   imagenCreada: boolean = false;
-
+  errorImagen: boolean = false; 
   datosRecibidos: any;
   private subscription: Subscription = new Subscription();
 
@@ -86,7 +86,6 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.datosRecibidos = datos;
       this.creandoImagen = this.datosRecibidos.creandoImagen;
       this.transformedUrl = this.datosRecibidos.transformedImageUrl;
-      console.log(this.creandoImagen);
 
       if (this.transformedUrl) {
         this._uploadService
@@ -97,7 +96,8 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
               this.imagenCreada = true;
             },
             error: (error) => {
-              console.error('Error:', error);
+              this.creandoImagen = false;
+              this.errorImagen = true; 
             },
           });
       }

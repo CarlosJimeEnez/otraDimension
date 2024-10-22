@@ -39,12 +39,18 @@ export class UploadService {
       contrast?: boolean;
     } = {}
   ): string {
+
     if (backgroundPrompt == 'Fantasmas') {
       backgroundPrompt = 'Ghosts';
     } else if (backgroundPrompt == 'Murcielagos') {
       backgroundPrompt = 'Bats';
     } else if (backgroundPrompt == 'Niebla terrorífica') {
       backgroundPrompt = 'Terrifying fog';
+    }
+
+    if(!backgroundPrompt){
+      console.log(backgroundPrompt)
+      backgroundPrompt = "/"
     }
 
     console.log(`Background Prompt: ${backgroundPrompt}`);
@@ -76,7 +82,6 @@ export class UploadService {
     }
 
     transformations.push('w_300,h_300,c_fill');
-
     const transformationString = transformations.join('/');
 
     return `https://res.cloudinary.com/${environment.cloudinary.cloudName}/image/upload/${transformationString}/${publicId}`;

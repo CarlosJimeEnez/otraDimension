@@ -285,7 +285,39 @@ import { DataTransferService } from '../../services/data-transfer.service';
             "
           ></app-filtros-badge>
         </div>
-        } @if (BadgesSeleccionado) {
+        <div class="flex items-center justify-center my-3">O</div>
+        <div>
+          <form
+            class=""
+            [formGroup]="backgroundForm"
+            (ngSubmit)="onBackground()"
+          >
+            <textarea
+              id="message"
+              rows="4"
+              formControlName="backgroundText"
+              class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              placeholder="Genera tu propio Background"
+            ></textarea>
+
+            @if (backgroundForm.get('backgroundText')?.invalid){
+            @if(backgroundForm.get('backgroundText')?.errors?.['pattern']){
+            <small class="text-red-500">
+              No se permiten caracteres especiales.
+            </small>
+            } }
+
+            <div class="flex justify-start items-center my-3">
+              <button
+                type="submit"
+                class="px-4 py-2 text-sm font-medium text-white dark:bg-secondaryv1 hover:dark:bg-secondary rounded-lg shadow-md hover:dark:text-white  focus:outline-none"
+              >
+                Guardar
+              </button>
+            </div>
+          </form>
+        </div>
+        } @if (BadgesSeleccionado || prompTextSeleccionado) {
         <div class="space-y-3 mt-3">
           <app-typing-animation
             [fullText]="'Que ocurrió en el lugar?'"
@@ -396,8 +428,11 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit, OnDestroy {
   localizacion: GeoPoint | null = null;
   ImagenSeleccionada: boolean = false;
   BadgesSeleccionado: boolean = false;
+  prompTextSeleccionado: boolean = false
   selectedBadges: Badges[] = [];
   form: FormGroup;
+  backgroundForm: FormGroup;
+
   map: mapboxgl.Map | null = null;
   files: File[] = [];
   processedImageUrl: any | null = null;
@@ -437,6 +472,12 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit, OnDestroy {
       ],
     });
 
+    this.backgroundForm = this.fb.group({
+      backgroundText: [
+        '',
+        [Validators.required, Validators.pattern(/^[a-zA-Z0-9\s]*$/)],
+      ],
+    });
     this.center = this._route.snapshot.queryParams['center'];
   }
 
@@ -451,6 +492,12 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit, OnDestroy {
     this.form.get('nombre')?.valueChanges.subscribe((value) => {
       this.nombreText = value;
     });
+    this.backgroundForm
+      .get('backgroundText')
+      ?.valueChanges.subscribe((value) => {
+        this.backgroundPrompt = value;
+        console.log(this.backgroundPrompt);
+      });
   }
 
   ngAfterViewInit(): void {
@@ -475,6 +522,7 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit, OnDestroy {
       this.map?.resize();
       this.reiniciarMap(this.map);
       const marker = this.addMarker();
+
       // Actualizar la posición del marker cuando el mapa se mueve
       this.map.on('move', () => {
         const center = this.map!.getCenter();
@@ -579,7 +627,6 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit, OnDestroy {
     const existsBackground = this.selectedBadges.some(
       (badge) => badge.tipo === tipo
     );
-    this.BadgesSeleccionado = true;
 
     if (exists) {
       this.removeBadge(texto);
@@ -601,6 +648,21 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
+  onBackground(): boolean {
+    if (this.isBackgroundFormValid() && this.backgroundPrompt) {
+      this.prompTextSeleccionado = true;
+      return true;
+    }
+
+    if (this.selectedBadges.length <= 0) {
+      console.log("Selecciona un badge")
+      return false;
+    }
+
+    this.BadgesSeleccionado = true;
+    return true;
+  }
+
   onSubmit(): boolean {
     if (!this.isImageSelected()) {
       return false;
@@ -609,38 +671,37 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit, OnDestroy {
       this.form.markAllAsTouched();
       return false;
     }
+
     this.processForm();
     return false;
   }
 
   guardarPosicion(): void {
     this.localizacion = new GeoPoint(this.center[1], this.center[0]);
-
     this.localizacioneSeleccionada = true;
   }
 
   private upload() {
     this.isUploading = true;
+
     const localizacion = this.localizacion;
     if (!localizacion) {
-      console.error('Localización es requerida');
       return;
     }
 
-    this.selectedBadges.filter((badge) => {
-      if (badge.tipo == 'background') {
-        this.backgroundPrompt = badge.texto;
-      } else {
-        console.log(badge);
-      }
-    });
+    if(this.BadgesSeleccionado){
+      this.selectedBadges.filter((badge) => {
+        if (badge.tipo == 'background') {
+          this.backgroundPrompt = badge.texto;
+          console.log(this.backgroundPrompt);
+        } else {
+          console.log(this.backgroundPrompt)
+        }
+      });
+    }
 
-    console.log(this.nombreText);
-    console.log(this.storyText);
     const nombre = this.nombreText;
     const story = this.storyText;
-
-    // Luego tu validación
     if (!this.storyText || !this.nombreText) {
       console.error('Campos requeridos');
       return;
@@ -687,6 +748,10 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit, OnDestroy {
 
   private isFormValid(): boolean {
     return this.form.valid;
+  }
+
+  private isBackgroundFormValid(): boolean {
+    return this.backgroundForm.valid;
   }
 
   private processForm(): void {
