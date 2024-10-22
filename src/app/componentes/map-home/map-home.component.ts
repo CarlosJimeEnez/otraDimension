@@ -65,7 +65,7 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
   imagenCreada: boolean = false;
   errorImagen: boolean = false; 
   datosRecibidos: any;
-  cerrarIntro!: boolean  
+  cerrarIntro: boolean = false  
   introData: any
   loading: boolean = true 
 
@@ -90,7 +90,6 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit() {
-    console.log(this.cerrarIntro)
     this.subscription = this._dataTransfer.data$.subscribe((datos) => {
       this.datosRecibidos = datos;
       this.creandoImagen = this.datosRecibidos.creandoImagen;
@@ -126,9 +125,11 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
      this._firebaseService.getIntro().subscribe({
       next: (introData) => {
         this.introData = introData
+        this.cerrarIntro = this.introData[0].mostrarIntro
+
         this.loading = false
+        console.log(this.cerrarIntro)
         console.log(this.introData)
-        this.cerrarIntro = this.introData.mostrarIntro
       }, 
       error: (error) => {
         console.log(error)
@@ -249,7 +250,11 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.cerrarIntro = true
   }
 
- 
+  noMostrar(){
+    this.cerrar()
+    const itemID: string = "gxQvHHEGQgwfrQN039HS"
+    this._firebaseService.updateNoMostrarIntro(true, itemID)
+  }
 
   private reiniciarMap(mapa: mapboxgl.Map): void {
     // Guardar el estado actual del mapa si lo necesitas

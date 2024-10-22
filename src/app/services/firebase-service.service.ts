@@ -30,6 +30,11 @@ export class FirebaseService {
     }) as Observable<Intro>; 
   }
 
+  updateNoMostrarIntro(mostrarIntro: boolean, itemId: string){
+    const itemDocRef = doc(this.firestore, `Intro/${itemId}`); // Referencia al documento con el id `itemId`
+    return updateDoc(itemDocRef, { mostrarIntro: mostrarIntro });
+  }
+
   // Obtener todos los items de la colección
   getItems(): Observable<Item[]> {
     return collectionData(this.itemsCollection, {

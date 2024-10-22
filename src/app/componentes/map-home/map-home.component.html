@@ -1,7 +1,7 @@
 <div #mapContainer id="map" class="w-full h-screen relative top-0 left-0"></div>
 
 @if (loading) {
-    <svg aria-hidden="true" class="w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
+<svg aria-hidden="true" class="w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
     viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path
         d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
@@ -16,14 +16,16 @@
     class="bg-white border border-gray-200 rounded-lg shadow dark:bg-background dark:border-gray-700 absolute text-text space-y-4 top-16 w-8/12 max-h-[75vh] custom-scrollbar overflow-y-auto left-1/2 transform -translate-x-1/2  p-6 z-10">
     <app-typing-animation class=""
         [fullText]="'Convierte tus fotos en escenas aterradoras con filtros espeluznantes como niebla fantasmal y sombras inquietantes. Luego, colócalas en un mapa interactivo para marcar y compartir los lugares más escalofriantes. ¡Edita, explora y comparte el terror!'"></app-typing-animation>
-    <button (click)="cerrar()"
-        class="px-4 py-2 text-sm font-medium text-text dark:bg-primaryv2 rounded-lg shadow-md hover:dark:bg-primary hover:dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white">
-        Cerrar
-    </button>
-    <!-- <button (click)="noMostrar()"
-                class="px-4 py-2 text-sm font-medium text-text dark:bg-primaryv2 rounded-lg shadow-md hover:dark:bg-primary hover:dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white">
-                No mostrar de nuevo
-            </button> -->
+    <div class="flex justify-start space-x-3 items-center">
+        <button (click)="noMostrar()"
+            class="px-4 py-2 text-sm font-medium opacity-80 text-text dark:bg-accentv3 rounded-lg shadow-md hover:dark:bg-accentv2 hover:dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white">
+            No mostrar de nuevo
+        </button>
+        <button (click)="cerrar()"
+            class="px-4 py-2 text-sm font-medium text-text dark:bg-primaryv2 rounded-lg shadow-md hover:dark:bg-primary hover:dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white">
+            Cerrar
+        </button>
+    </div>
 </div>
 }
 }
