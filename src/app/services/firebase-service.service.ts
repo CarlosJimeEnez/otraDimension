@@ -10,16 +10,24 @@ import {
   GeoPoint,
 } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
-import { Item } from '../interfaces/ImagePost';
+import { Intro, Item } from '../interfaces/ImagePost';
 
 @Injectable({
   providedIn: 'root',
 })
 export class FirebaseService {
   private itemsCollection: any; // Referencia a la colección 'items'
+  private introTemplate: any; 
 
   constructor(private firestore: Firestore) {
     this.itemsCollection = collection(this.firestore, 'items');
+    this.introTemplate = collection(this.firestore, 'Intro');
+  }
+
+  getIntro(): Observable<Intro> {
+    return collectionData(this.introTemplate, {
+      idField: 'id'
+    }) as Observable<Intro>; 
   }
 
   // Obtener todos los items de la colección

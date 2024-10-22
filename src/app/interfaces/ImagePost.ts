@@ -17,3 +17,8 @@ export interface Item {
   OriginalImageUrl: string;
   TransformedImageUrl: string;
 }
+
+export interface Intro {
+  id?: string;
+  mostrarIntro: boolean; 
+}

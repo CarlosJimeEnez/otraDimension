@@ -18,6 +18,7 @@ import { UploadService } from '../../services/upload.service';
 import { DataTransferService } from '../../services/data-transfer.service';
 import { Subscription } from 'rxjs';
 import { TypingAnimationComponent } from "../typing-animation/typing-animation.component";
+import { Intro } from '../../interfaces/ImagePost';
 
 @Component({
   selector: 'app-map-home',
@@ -64,7 +65,10 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
   imagenCreada: boolean = false;
   errorImagen: boolean = false; 
   datosRecibidos: any;
-  cerrarIntro: boolean = false; 
+  cerrarIntro!: boolean  
+  introData: any
+  loading: boolean = true 
+
   private subscription: Subscription = new Subscription();
 
   items: Item[] = [];
@@ -76,7 +80,9 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
     private _router: ActivatedRoute,
     private _uploadService: UploadService,
     private _dataTransfer: DataTransferService
-  ) {}
+  ) {
+   
+  }
 
   ngOnDestroy(): void {
     this._mapboxService.destroyMap();
@@ -84,6 +90,7 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit() {
+    console.log(this.cerrarIntro)
     this.subscription = this._dataTransfer.data$.subscribe((datos) => {
       this.datosRecibidos = datos;
       this.creandoImagen = this.datosRecibidos.creandoImagen;
@@ -114,6 +121,19 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
         console.log(error);
       },
     });
+
+     //Mostrar intro...
+     this._firebaseService.getIntro().subscribe({
+      next: (introData) => {
+        this.introData = introData
+        this.loading = false
+        console.log(this.introData)
+        this.cerrarIntro = this.introData.mostrarIntro
+      }, 
+      error: (error) => {
+        console.log(error)
+      }
+    })
   }
 
   ngAfterViewInit(): void {
