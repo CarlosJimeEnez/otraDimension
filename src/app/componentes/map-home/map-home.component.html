@@ -1,5 +1,21 @@
 <div #mapContainer id="map" class="w-full h-screen relative top-0 left-0"></div>
 
+@if (!cerrarIntro) {
+<div
+    class="bg-white border border-gray-200 rounded-lg shadow dark:bg-background dark:border-gray-700 absolute text-text space-y-4 top-16 w-8/12 max-h-[75vh] custom-scrollbar overflow-y-auto left-1/2 transform -translate-x-1/2  p-6 z-10">
+    <app-typing-animation class=""
+        [fullText]="'Convierte tus fotos en escenas aterradoras con filtros espeluznantes como niebla fantasmal y sombras inquietantes. Luego, colócalas en un mapa interactivo para marcar y compartir los lugares más escalofriantes. ¡Edita, explora y comparte el terror!'"></app-typing-animation>
+    <button (click)="cerrar()"
+        class="px-4 py-2 text-sm font-medium text-text dark:bg-primaryv2 rounded-lg shadow-md hover:dark:bg-primary hover:dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white">
+        Cerrar
+    </button>
+    <!-- <button (click)="noMostrar()"
+        class="px-4 py-2 text-sm font-medium text-text dark:bg-primaryv2 rounded-lg shadow-md hover:dark:bg-primary hover:dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white">
+        No mostrar de nuevo
+    </button> -->
+</div>
+}
+
 @if (creandoImagen) {
 <div class="absolute flex items-center space-x-3 text-text top-16 left-8 w-8/12 max-h-[75vh] ">
     <div role="status">

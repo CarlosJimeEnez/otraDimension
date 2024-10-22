@@ -17,11 +17,12 @@ import { FirebaseService } from '../../services/firebase-service.service';
 import { UploadService } from '../../services/upload.service';
 import { DataTransferService } from '../../services/data-transfer.service';
 import { Subscription } from 'rxjs';
+import { TypingAnimationComponent } from "../typing-animation/typing-animation.component";
 
 @Component({
   selector: 'app-map-home',
   standalone: true,
-  imports: [EventosDetallesComponent, FooterComponent, NuevoEventoComponent],
+  imports: [EventosDetallesComponent, FooterComponent, NuevoEventoComponent, TypingAnimationComponent],
   templateUrl: './map-home.component.html',
   styles: [
     `
@@ -63,6 +64,7 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
   imagenCreada: boolean = false;
   errorImagen: boolean = false; 
   datosRecibidos: any;
+  cerrarIntro: boolean = false; 
   private subscription: Subscription = new Subscription();
 
   items: Item[] = [];
@@ -148,8 +150,6 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
       el.style.height = '50px';
       el.style.backgroundSize = '100%';
 
-      const marker = new mapboxgl.Marker(el).setLngLat(center).addTo(this.map!);
-
       const marker1 = new mapboxgl.Marker({ color: 'var(--primary)' })
         .setLngLat(center)
         .addTo(this.map!);
@@ -224,6 +224,12 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
       queryParams: { center: this.center },
     });
   }
+
+  cerrar(){
+    this.cerrarIntro = true
+  }
+
+ 
 
   private reiniciarMap(mapa: mapboxgl.Map): void {
     // Guardar el estado actual del mapa si lo necesitas
