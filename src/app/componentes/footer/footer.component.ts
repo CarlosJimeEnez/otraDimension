@@ -10,7 +10,7 @@ import { Component, EventEmitter, Output } from '@angular/core';
         <button
           (click)="mostrarEventoDashboard()"
           type="button"
-          class="mt-1 text-text bg-gradient-to-br from-primaryv3 to-accentv2 hover:bg-gradient-to-bl focus:outline-none font-semibold rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
+          class="mt-1 glow-effect text-text bg-gradient-to-br from-primaryv3 to-accentv2 hover:bg-gradient-to-bl focus:outline-none font-semibold rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
         >
           <div class="flex justify-center items-center space-x-3">
             <img src="/iconos/Add.svg" class="s-3 w-4 h-4" alt="add-button" />

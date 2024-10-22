@@ -110,4 +110,14 @@
     background: var(--accent-v1);
   }
 
+  /* En tu archivo de estilos */
+.glow-effect {
+  box-shadow: 0 0 19px rgba(239, 68, 68, 0.3);
+  transition: all 0.3s ease;
+}
+
+.glow-effect:hover {
+  box-shadow: 0 0 30px rgba(239, 68, 68, 0.6);
+}
+
 }

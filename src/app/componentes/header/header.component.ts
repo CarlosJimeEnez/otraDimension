@@ -37,7 +37,7 @@ import { Component } from '@angular/core';
 
         <button class="text-text absolute right-0 p-3">
           <div>
-            <img src="/moon.png" class="w-6 h-6" alt="moon icon" />
+           
           </div>
         </button>
       </div>

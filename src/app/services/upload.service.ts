@@ -50,7 +50,7 @@ export class UploadService {
 
     if(!backgroundPrompt){
       console.log(backgroundPrompt)
-      backgroundPrompt = "/"
+      backgroundPrompt = "Terrifying fog"
     }
 
     console.log(`Background Prompt: ${backgroundPrompt}`);
