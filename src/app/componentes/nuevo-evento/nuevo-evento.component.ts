@@ -5,6 +5,7 @@ import {
   ElementRef,
   EventEmitter,
   Input,
+  OnDestroy,
   OnInit,
   Output,
   ViewChild,
@@ -27,6 +28,8 @@ import { GeoPoint } from 'firebase/firestore';
 import { ActivatedRoute, Router } from '@angular/router';
 import { text } from '@cloudinary/url-gen/qualifiers/source';
 import { blackwhite } from '@cloudinary/url-gen/actions/effect';
+import { BehaviorSubject } from 'rxjs';
+import { DataTransferService } from '../../services/data-transfer.service';
 
 @Component({
   selector: 'app-nuevo-evento',
@@ -383,7 +386,7 @@ import { blackwhite } from '@cloudinary/url-gen/actions/effect';
     </div>
   `,
 })
-export class NuevoEventoComponent implements AfterViewInit, OnInit {
+export class NuevoEventoComponent implements AfterViewInit, OnInit, OnDestroy {
   center: [number, number];
   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef;
   // Access the span element
@@ -412,7 +415,8 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
     private _uploadService: UploadService,
     private _firebaseService: FirebaseService,
     private _route: ActivatedRoute,
-    private _router: Router
+    private _router: Router,
+    private _dataTransfer: DataTransferService
   ) {
     this.form = this.fb.group({
       story: [
@@ -434,6 +438,10 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
     });
 
     this.center = this._route.snapshot.queryParams['center'];
+  }
+
+  ngOnDestroy(): void {
+    this._mapService.destroyMap();
   }
 
   ngOnInit(): void {
@@ -487,9 +495,7 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
   }
 
   cerrar() {
-    this._router.navigate([''], {
-      queryParams: { creandoImagen: true },
-    });
+    this._router.navigate(['']);
   }
 
   reiniciarMap(mapa: mapboxgl.Map): void {
@@ -655,7 +661,6 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
             contrast: this.isSelected('Contraste'),
           }
         );
-
         this.isUploading = false;
       },
 
@@ -686,8 +691,8 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
 
   private processForm(): void {
     this.upload();
-    this.resetForm();
     this.cerrar();
+    this.resetForm();
   }
 
   private saveFirebase(
@@ -709,6 +714,12 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit {
     if (!nombre?.trim() || !story?.trim()) {
       throw new Error('Datos inválidos para guardar en Firebase');
     }
+
+    const datosImagen = {
+      creandoImagen: true,
+      transformedImageUrl: this.transformedImageUrl,
+    };
+    this._dataTransfer.setData(datosImagen);
 
     this._firebaseService.addItem(
       nombre,

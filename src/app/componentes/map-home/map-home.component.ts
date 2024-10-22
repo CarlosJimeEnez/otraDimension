@@ -14,6 +14,9 @@ import { MapboxService } from '../../services/mapbox.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Item } from '../../interfaces/ImagePost';
 import { FirebaseService } from '../../services/firebase-service.service';
+import { UploadService } from '../../services/upload.service';
+import { DataTransferService } from '../../services/data-transfer.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-map-home',
@@ -55,8 +58,12 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
   eventoSeleccionado: Item | undefined;
   mostrarDashboard: boolean = false;
   activePopup: mapboxgl.Popup | null = null;
-  creandoImagen: boolean = false;  
-  imagenCreada: boolean = false; 
+  transformedUrl: string = '';
+  creandoImagen: boolean = false;
+  imagenCreada: boolean = false;
+
+  datosRecibidos: any;
+  private subscription: Subscription = new Subscription();
 
   items: Item[] = [];
 
@@ -65,18 +72,37 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
     private _mapboxService: MapboxService,
     private _route: Router,
     private _router: ActivatedRoute,
-  ) {
-    
-    this.creandoImagen = this._router.snapshot.queryParams['creandoImagen'] === false; 
-    console.log(this.creandoImagen)
-    
-  }
+    private _uploadService: UploadService,
+    private _dataTransfer: DataTransferService
+  ) {}
 
   ngOnDestroy(): void {
     this._mapboxService.destroyMap();
+    this.subscription.unsubscribe();
   }
 
   ngOnInit() {
+    this.subscription = this._dataTransfer.data$.subscribe((datos) => {
+      this.datosRecibidos = datos;
+      this.creandoImagen = this.datosRecibidos.creandoImagen;
+      this.transformedUrl = this.datosRecibidos.transformedImageUrl;
+      console.log(this.creandoImagen);
+
+      if (this.transformedUrl) {
+        this._uploadService
+          .checkImageLoadStatus(this.transformedUrl)
+          .subscribe({
+            next: (url) => {
+              this.creandoImagen = false;
+              this.imagenCreada = true;
+            },
+            error: (error) => {
+              console.error('Error:', error);
+            },
+          });
+      }
+    });
+
     this._firebaseService.getItems().subscribe({
       next: (items) => {
         this.items = items;
@@ -86,7 +112,6 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
         console.log(error);
       },
     });
-
   }
 
   ngAfterViewInit(): void {
@@ -105,7 +130,7 @@ export class MapHomeComponent implements OnInit, AfterViewInit, OnDestroy {
       }
       this.map.resize();
       this.reiniciarMap(this.map);
-      this.map?.setZoom(14);
+      this.map?.setZoom(15);
     }
   }
 

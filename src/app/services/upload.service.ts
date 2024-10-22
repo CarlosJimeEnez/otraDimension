@@ -39,6 +39,15 @@ export class UploadService {
       contrast?: boolean;
     } = {}
   ): string {
+    if (backgroundPrompt == 'Fantasmas') {
+      backgroundPrompt = 'Ghosts';
+    } else if (backgroundPrompt == 'Murcielagos') {
+      backgroundPrompt = 'Bats';
+    } else if (backgroundPrompt == 'Niebla terrorífica') {
+      backgroundPrompt = 'Terrifying fog';
+    }
+
+    console.log(`Background Prompt: ${backgroundPrompt}`);
     const encodedPrompt = encodeURIComponent(backgroundPrompt);
     const transformations = [
       `e_gen_background_replace:prompt_${encodedPrompt}`,
@@ -71,5 +80,23 @@ export class UploadService {
     const transformationString = transformations.join('/');
 
     return `https://res.cloudinary.com/${environment.cloudinary.cloudName}/image/upload/${transformationString}/${publicId}`;
+  }
+
+  // Este método verifica cuando la imagen está lista
+  checkImageLoadStatus(url: string): Observable<string> {
+    return new Observable((observer) => {
+      const img = new Image();
+
+      img.onload = () => {
+        observer.next(url);
+        observer.complete();
+      };
+
+      img.onerror = () => {
+        observer.error('Error al cargar la imagen');
+      };
+
+      img.src = url;
+    });
   }
 }
