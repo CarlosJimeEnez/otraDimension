@@ -297,7 +297,7 @@ import { DataTransferService } from '../../services/data-transfer.service';
               rows="4"
               formControlName="backgroundText"
               class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              placeholder="Genera tu propio Background"
+              placeholder="Genera tu propio Background. (Mejores resultados en Inglés)"
             ></textarea>
 
             @if (backgroundForm.get('backgroundText')?.invalid){
@@ -428,7 +428,7 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit, OnDestroy {
   localizacion: GeoPoint | null = null;
   ImagenSeleccionada: boolean = false;
   BadgesSeleccionado: boolean = false;
-  prompTextSeleccionado: boolean = false
+  prompTextSeleccionado: boolean = false;
   selectedBadges: Badges[] = [];
   form: FormGroup;
   backgroundForm: FormGroup;
@@ -655,7 +655,7 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit, OnDestroy {
     }
 
     if (this.selectedBadges.length <= 0) {
-      console.log("Selecciona un badge")
+      console.log('Selecciona un badge');
       return false;
     }
 
@@ -689,13 +689,13 @@ export class NuevoEventoComponent implements AfterViewInit, OnInit, OnDestroy {
       return;
     }
 
-    if(this.BadgesSeleccionado){
+    if (this.BadgesSeleccionado) {
       this.selectedBadges.filter((badge) => {
         if (badge.tipo == 'background') {
           this.backgroundPrompt = badge.texto;
           console.log(this.backgroundPrompt);
         } else {
-          console.log(this.backgroundPrompt)
+          console.log(this.backgroundPrompt);
         }
       });
     }

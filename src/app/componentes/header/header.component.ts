@@ -9,7 +9,7 @@ import { Component } from '@angular/core';
       <div
         class="flex p-3 2xl:py-4 items-center bg-background justify-center w-full fixed top-0 left-0 z-50 border-b border-gray-200  shadow dark:border-gray-700"
       >
-        <div class="absolute left-0 text-text p-3">
+        <div class="absolute left-0 text-text p-3 select-none">
           <small>México/Puebla</small>
         </div>
 
@@ -35,11 +35,9 @@ import { Component } from '@angular/core';
           </button>
         </div>
 
-        <button class="text-text absolute right-0 p-3">
-          <div>
-           
-          </div>
-        </button>
+        <div class="text-text absolute right-0 p-3 select-none">
+          <p>Cloudinary CloudCreate: Spooky AI Hackathon</p>
+        </div>
       </div>
     </section>
   `,
